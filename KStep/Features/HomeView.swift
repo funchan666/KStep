@@ -34,24 +34,27 @@ struct HomeView: View {
     var body: some View {
         let request = ChannelRequest(links: commerce.release?.lcList?["us"] ?? [], attempt: channelRetry)
         ScrollViewReader { scroll in
-            StageScrollView { topInset in
-                VStack(spacing: 0) {
-                    rehearsalHeader(topInset: topInset)
-                    VStack(alignment: .leading, spacing: 22) {
-                        linkComposer.id("lesson-link-composer")
-                        connection
-                        ViewThatFits(in: .horizontal) {
-                            HStack(spacing: 10) { lessonActions }
-                            VStack(spacing: 10) { lessonActions }
-                        }
-                        choreoCollections
-                        DanceGuideEntry(compact: true) { showingGuide = true }
-                        recentLinks
-                    }.kstepPage(top: 18)
+            GeometryReader { viewport in
+                let artworkHeight = min(max(viewport.size.width * 0.80, 212), 336)
+                StageScrollView { topInset in
+                    VStack(spacing: 0) {
+                        rehearsalHeader(topInset: topInset, artworkHeight: artworkHeight)
+                        VStack(alignment: .leading, spacing: 22) {
+                            linkComposer.id("lesson-link-composer")
+                            connection
+                            ViewThatFits(in: .horizontal) {
+                                HStack(spacing: 10) { lessonActions }
+                                VStack(spacing: 10) { lessonActions }
+                            }
+                            choreoCollections
+                            DanceGuideEntry(compact: true) { showingGuide = true }
+                            recentLinks
+                        }.kstepPage(top: 18)
+                    }
                 }
+                .scrollDismissesKeyboard(.interactively)
+                .dismissKeyboardOnOutsideTap($focused, scope: "home-link-input")
             }
-            .scrollDismissesKeyboard(.interactively)
-            .dismissKeyboardOnOutsideTap($focused, scope: "home-link-input")
             .onChange(of: revealLinkComposer, initial: true) { _, requested in
                 guard requested else { return }
                 scroll.scrollTo("lesson-link-composer")
@@ -90,20 +93,17 @@ struct HomeView: View {
             }
     }
 
-    private func rehearsalHeader(topInset: CGFloat) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            VStack(alignment: .leading, spacing: 0) {
-                headerActions
-                Spacer(minLength: 76)
-                LocalizedText("Eight-count")
-                    .font(.stage(.largeTitle, display: true))
-                    .fixedSize(horizontal: false, vertical: true)
-                    .accessibilityAddTraits(.isHeader)
-            }.stageColumn().padding(.top, 6).padding(.bottom, 10)
-                .frame(maxWidth: .infinity, minHeight: 222)
+    private func rehearsalHeader(topInset: CGFloat, artworkHeight: CGFloat) -> some View {
+        VStack(spacing: 0) {
+            headerActions.stageColumn()
+                .padding(.top, 6)
+                .frame(minHeight: artworkHeight * 0.70, alignment: .top)
                 .padding(.top, topInset)
-            rehearsalFloor.stageColumn()
-        }.background { StagePhoto(artwork: "RehearsalStudio") }
+            rehearsalPanel.stageColumn()
+        }.background(alignment: .top) {
+            StagePhoto(artwork: "RehearsalStudio")
+                .frame(height: topInset + artworkHeight)
+        }
     }
 
     private var headerActions: some View {
@@ -132,38 +132,110 @@ struct HomeView: View {
         }
     }
 
-    private var rehearsalFloor: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            VStack(alignment: .leading, spacing: 8) {
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 4),
-                                         count: typeSize.isAccessibilitySize ? 2 : 4), spacing: 4) {
-                    ForEach(1...8, id: \.self) { count in
+    private var rehearsalPanel: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            LocalizedText("Eight-count")
+                .font(.stage(.title2, display: true))
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
+            ViewThatFits(in: .horizontal) {
+                beatGrid(columns: 8)
+                beatGrid(columns: 4)
+                beatGrid(columns: 2)
+                beatGrid(columns: 1)
+            }.environment(\.layoutDirection, .leftToRight)
+            practiceSpeed
+            Button { showingPractice = true } label: {
+                HStack(spacing: 10) {
+                    Glyph(symbol: .edit, size: 18, tint: KStepStyle.accent)
+                    LocalizedText("Rehearsal log")
+                        .font(.stage(.subheadline, weight: .semibold))
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer(minLength: 0)
+                    Glyph(symbol: .back, size: 13, tint: KStepStyle.accent)
+                        .rotationEffect(.degrees(180))
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .frame(minHeight: 44)
+                .background(KStepStyle.accent.opacity(0.14), in: RoundedRectangle(cornerRadius: 12))
+                .contentShape(Rectangle())
+            }.buttonStyle(PressStyle()).accessibilityIdentifier("practice.openJournal")
+        }
+        .padding(14)
+        .stageGlass(RoundedRectangle(cornerRadius: 22))
+    }
+
+    private func beatGrid(columns: Int) -> some View {
+        Grid(horizontalSpacing: 6, verticalSpacing: 6) {
+            ForEach(0..<(8 / columns), id: \.self) { row in
+                GridRow {
+                    ForEach(1...columns, id: \.self) { column in
+                        let count = row * columns + column
+                        let selected = beat == count
+                        let number = count.formatted(.number.locale(locale))
+                        let title = L10n.text("Eight-count", language: AppLanguage.from(locale))
                         Button { beat = count } label: {
-                            Text(count, format: .number)
-                                .font(.stage(.title3, weight: .semibold)).monospacedDigit()
-                                .frame(maxWidth: .infinity, minHeight: 44)
-                                .foregroundStyle(beat == count ? KStepStyle.ink : KStepStyle.paper)
-                                .background {
-                                    if beat == count {
-                                        RoundedRectangle(cornerRadius: 9).fill(KStepStyle.paper)
-                                    }
-                                }
+                            Text(verbatim: number)
+                                .font(.stage(.title3, weight: selected ? .bold : .semibold))
+                                .monospacedDigit()
+                                .fixedSize()
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 6)
+                                .frame(minWidth: 44, maxWidth: .infinity, minHeight: 44)
+                                .foregroundStyle(selected ? KStepStyle.ink : KStepStyle.paper)
+                                .background(selected ? KStepStyle.paper : KStepStyle.paper.opacity(0.10),
+                                            in: RoundedRectangle(cornerRadius: 10))
                                 .contentShape(Rectangle())
                         }.buttonStyle(PressStyle())
-                            .accessibilityLabel(LocalizedStringKey("Eight-count beat \(count)"))
-                            .accessibilityAddTraits(beat == count ? .isSelected : [])
+                            .accessibilityLabel(Text(verbatim: "\(title) \(number)"))
+                            .accessibilityAddTraits(selected ? .isSelected : [])
                     }
-                }.environment(\.layoutDirection, .leftToRight)
-                Divider().overlay(KStepStyle.line)
-                LocalizedText("Practice speed").font(.stage(.caption, weight: .semibold))
-                    .foregroundStyle(KStepStyle.secondary).padding(.leading, 8)
-                ChoiceStrip(values: PracticeTempo.allCases.map(\.label), selected: tempo.label, onGlass: true) { label in
-                    if let value = PracticeTempo.allCases.first(where: { $0.label == label }) { tempo = value }
                 }
-            }.padding(10).stageGlass(RoundedRectangle(cornerRadius: 18))
-            ActionButton(title: "Rehearsal log") { showingPractice = true }
-                .accessibilityIdentifier("practice.openJournal")
+            }
         }
+    }
+
+    private var practiceSpeed: some View {
+        let label = LocalizedText("Practice speed")
+            .font(.stage(.footnote, weight: .semibold))
+            .foregroundStyle(KStepStyle.secondary)
+        return ViewThatFits(in: .horizontal) {
+            HStack(spacing: 12) {
+                label.fixedSize()
+                tempoSelector(inline: true)
+            }
+            VStack(alignment: .leading, spacing: 6) {
+                label.fixedSize(horizontal: false, vertical: true)
+                ViewThatFits(in: .horizontal) {
+                    tempoSelector(inline: true)
+                    tempoSelector(inline: false)
+                }
+            }
+        }
+    }
+
+    private func tempoSelector(inline: Bool) -> some View {
+        let layout = inline ? AnyLayout(HStackLayout(spacing: 2)) : AnyLayout(VStackLayout(spacing: 2))
+        return layout {
+            ForEach(PracticeTempo.allCases) { value in
+                let selected = tempo == value
+                Button { tempo = value } label: {
+                    LocalizedText(value.label)
+                        .font(.stage(.footnote, weight: selected ? .bold : .medium).monospacedDigit())
+                        .fixedSize(horizontal: inline, vertical: true)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 6)
+                        .frame(minWidth: 44, maxWidth: .infinity, minHeight: 44)
+                        .background(selected ? KStepStyle.mist.opacity(0.24) : .clear,
+                                    in: RoundedRectangle(cornerRadius: 9))
+                        .contentShape(Rectangle())
+                }.buttonStyle(PressStyle())
+                    .accessibilityAddTraits(selected ? .isSelected : [])
+            }
+        }
+        .padding(3)
+        .background(KStepStyle.ink.opacity(0.30), in: RoundedRectangle(cornerRadius: 12))
     }
 
     @ViewBuilder private var choreoCollections: some View {

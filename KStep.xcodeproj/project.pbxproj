@@ -1,0 +1,491 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0A80A0B8549C3D5AB3BBC1FC /* KStep/Resources/Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 47A27C0CD55779B5085CB27B /* KStep/Resources/Assets.xcassets */; };
+		0FF11E000000000000000001 /* KStep/Core/OfflineStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FF11E000000000000000002 /* KStep/Core/OfflineStore.swift */; };
+		16EB816FD26D57C86FA63242 /* KStep/Resources/PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B01A9BEACE5275588553E5AD /* KStep/Resources/PrivacyInfo.xcprivacy */; };
+		1AC010000000000000000002 /* KStep/App/AppLanguage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AC010000000000000000001 /* KStep/App/AppLanguage.swift */; };
+		1AC010000000000000000065 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 1AC010000000000000000064 /* Localizable.strings */; };
+		1AC0100000000000000000C9 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 1AC0100000000000000000C8 /* InfoPlist.strings */; };
+		260CF880F17F5608D6824066 /* KStep/Core/CommerceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFC3AA166887DDAA8FB0EBD0 /* KStep/Core/CommerceStore.swift */; };
+		3208069C8A2559AFC43D06AE /* KStep/Features/PracticeVideoWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17682BB59D393EEB797E5420 /* KStep/Features/PracticeVideoWorkspace.swift */; };
+		327A09A6877BA42DD80120D2 /* KStep/Core/PlaybackController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2CDBB4A80FB9A168C05E16E /* KStep/Core/PlaybackController.swift */; };
+		4059FBA1D75B10A9F68ABDC0 /* KStep/App/KStepApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20B58A99F1A929AA77A8B9E3 /* KStep/App/KStepApp.swift */; };
+		445B4DAFB0E123A139308F4D /* KStep/Resources/Commerce.json in Resources */ = {isa = PBXBuildFile; fileRef = 1E86FD4AD3FF9F970DB0B719 /* KStep/Resources/Commerce.json */; };
+		50ADE255338BE02989CA8513 /* GoogleUserMessagingPlatform in Frameworks */ = {isa = PBXBuildFile; productRef = 0329FE2EF997A30C91906438 /* GoogleUserMessagingPlatform */; };
+		6AF10A27CB2DD141266F1710 /* KStep/Core/QuotaStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2E822DCE2A437F4FCB346A9 /* KStep/Core/QuotaStore.swift */; };
+		79CDD73938BF2D09D9492954 /* KStep/Core/APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3B808EADBFC1086054EA47A /* KStep/Core/APIClient.swift */; };
+		7B7855892215464D7C4CB60A /* KStep/Core/RewardedAds.swift in Sources */ = {isa = PBXBuildFile; fileRef = 675FC4243CA06F6ED86F21AC /* KStep/Core/RewardedAds.swift */; };
+		7EAA15000000000000000001 /* KStep/Features/DanceGuideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EAA15000000000000000002 /* KStep/Features/DanceGuideView.swift */; };
+		81F1CA728D14A09FCC01D07F /* KStep/App/DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4BD89A549F49134CAB0C817 /* KStep/App/DesignSystem.swift */; };
+		8B7AC1860EA6FD5B4C472DA6 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 1E2EBF992EE4434C89FA31D5 /* GoogleMobileAds */; };
+		8C78E63A9D2775413DFCA438 /* KStep/Features/HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 198C628051C30B581DC8DE92 /* KStep/Features/HomeView.swift */; };
+		8CBAB9F374786F17F0527D7A /* KStep/Features/MembershipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC62DF084BD6179B0CD0BFAA /* KStep/Features/MembershipView.swift */; };
+		A09B10000000000000000001 /* KStep/Resources/LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A09B10000000000000000002 /* KStep/Resources/LaunchScreen.storyboard */; };
+		A44A83298DFF881F87AA0F94 /* KStep/Core/VideoEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A756C8C59952EE6C3FB7A7E /* KStep/Core/VideoEditor.swift */; };
+		ACCE55100000000000000001 /* KStep/Features/AccountAccessViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACCE55100000000000000002 /* KStep/Features/AccountAccessViews.swift */; };
+		C68F5643B660D6177C54038C /* KStep/Core/LibraryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1983D2A3DA5E7E885A18C42A /* KStep/Core/LibraryStore.swift */; };
+		C71000000000000000000001 /* KStep/App/StageTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = C71000000000000000000002 /* KStep/App/StageTypography.swift */; };
+		C71000000000000000000003 /* KStep/Core/DancePracticeJournal.swift in Sources */ = {isa = PBXBuildFile; fileRef = C71000000000000000000004 /* KStep/Core/DancePracticeJournal.swift */; };
+		C71000000000000000000005 /* KStep/Features/DancePracticeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C71000000000000000000006 /* KStep/Features/DancePracticeView.swift */; };
+		C7F5D928DE552FB7782E6664 /* KStep/Core/LessonContracts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F5C66D3BCB0711DB84F1A3B /* KStep/Core/LessonContracts.swift */; };
+		D0DFDA960A87B68556723DA1 /* KStep/Features/DiscoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62B7ED2C47711EEDC253A7BD /* KStep/Features/DiscoverView.swift */; };
+		E8A0A1000000000000000001 /* KStep/Core/LessonStreamExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8A0A1000000000000000002 /* KStep/Core/LessonStreamExport.swift */; };
+		FDC33C2406605B5455C36984 /* KStep/Features/LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7641F37159249EE8BA2436D1 /* KStep/Features/LibraryView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0FF11E000000000000000002 /* KStep/Core/OfflineStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KStep/Core/OfflineStore.swift; sourceTree = SOURCE_ROOT; };
+		17682BB59D393EEB797E5420 /* KStep/Features/PracticeVideoWorkspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KStep/Features/PracticeVideoWorkspace.swift; sourceTree = SOURCE_ROOT; };
+		1983D2A3DA5E7E885A18C42A /* KStep/Core/LibraryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KStep/Core/LibraryStore.swift; sourceTree = SOURCE_ROOT; };
+		198C628051C30B581DC8DE92 /* KStep/Features/HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KStep/Features/HomeView.swift; sourceTree = SOURCE_ROOT; };
+		1A756C8C59952EE6C3FB7A7E /* KStep/Core/VideoEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KStep/Core/VideoEditor.swift; sourceTree = SOURCE_ROOT; };
+		1AC010000000000000000001 /* KStep/App/AppLanguage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KStep/App/AppLanguage.swift; sourceTree = SOURCE_ROOT; };
+		1AC010000000000000000066 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = KStep/Resources/en.lproj/Localizable.strings; sourceTree = SOURCE_ROOT; };
+		1AC010000000000000000067 /* ko */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ko; path = KStep/Resources/ko.lproj/Localizable.strings; sourceTree = SOURCE_ROOT; };
+		1AC010000000000000000068 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = KStep/Resources/ja.lproj/Localizable.strings; sourceTree = SOURCE_ROOT; };
+		1AC010000000000000000069 /* id */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = id; path = KStep/Resources/id.lproj/Localizable.strings; sourceTree = SOURCE_ROOT; };
+		1AC01000000000000000006A /* pt */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = pt; path = KStep/Resources/pt.lproj/Localizable.strings; sourceTree = SOURCE_ROOT; };
+		1AC01000000000000000006B /* ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ar; path = KStep/Resources/ar.lproj/Localizable.strings; sourceTree = SOURCE_ROOT; };
+		1AC01000000000000000006C /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = KStep/Resources/es.lproj/Localizable.strings; sourceTree = SOURCE_ROOT; };
+		1AC0100000000000000000CA /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = KStep/Resources/en.lproj/InfoPlist.strings; sourceTree = SOURCE_ROOT; };
+		1AC0100000000000000000CB /* ko */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ko; path = KStep/Resources/ko.lproj/InfoPlist.strings; sourceTree = SOURCE_ROOT; };
+		1AC0100000000000000000CC /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = KStep/Resources/ja.lproj/InfoPlist.strings; sourceTree = SOURCE_ROOT; };
+		1AC0100000000000000000CD /* id */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = id; path = KStep/Resources/id.lproj/InfoPlist.strings; sourceTree = SOURCE_ROOT; };
+		1AC0100000000000000000CE /* pt */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = pt; path = KStep/Resources/pt.lproj/InfoPlist.strings; sourceTree = SOURCE_ROOT; };
+		1AC0100000000000000000CF /* ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ar; path = KStep/Resources/ar.lproj/InfoPlist.strings; sourceTree = SOURCE_ROOT; };
+		1AC0100000000000000000D0 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = KStep/Resources/es.lproj/InfoPlist.strings; sourceTree = SOURCE_ROOT; };
+		1E86FD4AD3FF9F970DB0B719 /* KStep/Resources/Commerce.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = KStep/Resources/Commerce.json; sourceTree = SOURCE_ROOT; };
+		20B58A99F1A929AA77A8B9E3 /* KStep/App/KStepApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KStep/App/KStepApp.swift; sourceTree = SOURCE_ROOT; };
+		29492C6D58CC63AE5CCF1383 /* Config/KStep.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/KStep.xcconfig; sourceTree = SOURCE_ROOT; };
+		47A27C0CD55779B5085CB27B /* KStep/Resources/Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = KStep/Resources/Assets.xcassets; sourceTree = SOURCE_ROOT; };
+		4F5C66D3BCB0711DB84F1A3B /* KStep/Core/LessonContracts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KStep/Core/LessonContracts.swift; sourceTree = SOURCE_ROOT; };
+		62B7ED2C47711EEDC253A7BD /* KStep/Features/DiscoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KStep/Features/DiscoverView.swift; sourceTree = SOURCE_ROOT; };
+		675FC4243CA06F6ED86F21AC /* KStep/Core/RewardedAds.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KStep/Core/RewardedAds.swift; sourceTree = SOURCE_ROOT; };
+		7641F37159249EE8BA2436D1 /* KStep/Features/LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KStep/Features/LibraryView.swift; sourceTree = SOURCE_ROOT; };
+		7EAA15000000000000000002 /* KStep/Features/DanceGuideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KStep/Features/DanceGuideView.swift; sourceTree = SOURCE_ROOT; };
+		86E8C246447DD4C5D9405F57 /* KStep/Resources/Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = KStep/Resources/Info.plist; sourceTree = SOURCE_ROOT; };
+		A09B10000000000000000002 /* KStep/Resources/LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = KStep/Resources/LaunchScreen.storyboard; sourceTree = SOURCE_ROOT; };
+		A8792157CB4F27FB949C035F /* KStep.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; path = KStep.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		ACCE55100000000000000002 /* KStep/Features/AccountAccessViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KStep/Features/AccountAccessViews.swift; sourceTree = SOURCE_ROOT; };
+		B01A9BEACE5275588553E5AD /* KStep/Resources/PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = KStep/Resources/PrivacyInfo.xcprivacy; sourceTree = SOURCE_ROOT; };
+		B2E822DCE2A437F4FCB346A9 /* KStep/Core/QuotaStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KStep/Core/QuotaStore.swift; sourceTree = SOURCE_ROOT; };
+		C71000000000000000000002 /* KStep/App/StageTypography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KStep/App/StageTypography.swift; sourceTree = SOURCE_ROOT; };
+		C71000000000000000000004 /* KStep/Core/DancePracticeJournal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KStep/Core/DancePracticeJournal.swift; sourceTree = SOURCE_ROOT; };
+		C71000000000000000000006 /* KStep/Features/DancePracticeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KStep/Features/DancePracticeView.swift; sourceTree = SOURCE_ROOT; };
+		E3B808EADBFC1086054EA47A /* KStep/Core/APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KStep/Core/APIClient.swift; sourceTree = SOURCE_ROOT; };
+		E4BD89A549F49134CAB0C817 /* KStep/App/DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KStep/App/DesignSystem.swift; sourceTree = SOURCE_ROOT; };
+		E8A0A1000000000000000002 /* KStep/Core/LessonStreamExport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KStep/Core/LessonStreamExport.swift; sourceTree = SOURCE_ROOT; };
+		EC62DF084BD6179B0CD0BFAA /* KStep/Features/MembershipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KStep/Features/MembershipView.swift; sourceTree = SOURCE_ROOT; };
+		EFC3AA166887DDAA8FB0EBD0 /* KStep/Core/CommerceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KStep/Core/CommerceStore.swift; sourceTree = SOURCE_ROOT; };
+		F2CDBB4A80FB9A168C05E16E /* KStep/Core/PlaybackController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KStep/Core/PlaybackController.swift; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		E2AA269EB967A8853A258BFA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8B7AC1860EA6FD5B4C472DA6 /* GoogleMobileAds in Frameworks */,
+				50ADE255338BE02989CA8513 /* GoogleUserMessagingPlatform in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0A3E27B8CA818264D75C8D81 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A8792157CB4F27FB949C035F /* KStep.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		0D6E4079E36703EBD37C0072 = {
+			isa = PBXGroup;
+			children = (
+				C71000000000000000000006 /* KStep/Features/DancePracticeView.swift */,
+				C71000000000000000000004 /* KStep/Core/DancePracticeJournal.swift */,
+				C71000000000000000000002 /* KStep/App/StageTypography.swift */,
+				1AC010000000000000000001 /* KStep/App/AppLanguage.swift */,
+				1AC0100000000000000000C8 /* InfoPlist.strings */,
+				1AC010000000000000000064 /* Localizable.strings */,
+				20B58A99F1A929AA77A8B9E3 /* KStep/App/KStepApp.swift */,
+				E4BD89A549F49134CAB0C817 /* KStep/App/DesignSystem.swift */,
+				E3B808EADBFC1086054EA47A /* KStep/Core/APIClient.swift */,
+				EFC3AA166887DDAA8FB0EBD0 /* KStep/Core/CommerceStore.swift */,
+				1983D2A3DA5E7E885A18C42A /* KStep/Core/LibraryStore.swift */,
+				0FF11E000000000000000002 /* KStep/Core/OfflineStore.swift */,
+				E8A0A1000000000000000002 /* KStep/Core/LessonStreamExport.swift */,
+				4F5C66D3BCB0711DB84F1A3B /* KStep/Core/LessonContracts.swift */,
+				F2CDBB4A80FB9A168C05E16E /* KStep/Core/PlaybackController.swift */,
+				B2E822DCE2A437F4FCB346A9 /* KStep/Core/QuotaStore.swift */,
+				675FC4243CA06F6ED86F21AC /* KStep/Core/RewardedAds.swift */,
+				1A756C8C59952EE6C3FB7A7E /* KStep/Core/VideoEditor.swift */,
+				62B7ED2C47711EEDC253A7BD /* KStep/Features/DiscoverView.swift */,
+				17682BB59D393EEB797E5420 /* KStep/Features/PracticeVideoWorkspace.swift */,
+				7EAA15000000000000000002 /* KStep/Features/DanceGuideView.swift */,
+				198C628051C30B581DC8DE92 /* KStep/Features/HomeView.swift */,
+				7641F37159249EE8BA2436D1 /* KStep/Features/LibraryView.swift */,
+				EC62DF084BD6179B0CD0BFAA /* KStep/Features/MembershipView.swift */,
+				ACCE55100000000000000002 /* KStep/Features/AccountAccessViews.swift */,
+				47A27C0CD55779B5085CB27B /* KStep/Resources/Assets.xcassets */,
+				1E86FD4AD3FF9F970DB0B719 /* KStep/Resources/Commerce.json */,
+				B01A9BEACE5275588553E5AD /* KStep/Resources/PrivacyInfo.xcprivacy */,
+				86E8C246447DD4C5D9405F57 /* KStep/Resources/Info.plist */,
+				A09B10000000000000000002 /* KStep/Resources/LaunchScreen.storyboard */,
+				29492C6D58CC63AE5CCF1383 /* Config/KStep.xcconfig */,
+				0A3E27B8CA818264D75C8D81 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		34A04005BCAF206EEC990BD9 /* KStep */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1B672BF3DA427763BF644BE3 /* Build configuration list for PBXNativeTarget "KStep" */;
+			buildPhases = (
+				878A52FC5FF6A57D50B7B870 /* Sources */,
+				E2AA269EB967A8853A258BFA /* Frameworks */,
+				41D311A605520FC7B8B9A980 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = KStep;
+			packageProductDependencies = (
+				1E2EBF992EE4434C89FA31D5 /* GoogleMobileAds */,
+				0329FE2EF997A30C91906438 /* GoogleUserMessagingPlatform */,
+			);
+			productName = KStep;
+			productReference = A8792157CB4F27FB949C035F /* KStep.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		244210E48437B6556980A702 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 2710;
+				TargetAttributes = {
+					34A04005BCAF206EEC990BD9 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+				};
+			};
+			buildConfigurationList = 76F8DEC3DFE0BDB465198890 /* Build configuration list for PBXProject "KStep" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				ko,
+				ja,
+				id,
+				pt,
+				ar,
+				es,
+				Base,
+			);
+			mainGroup = 0D6E4079E36703EBD37C0072;
+			packageReferences = (
+				8D9B57A96758071C65350C25 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
+				A5A54C007ADCB895B9E4300F /* XCRemoteSwiftPackageReference "swift-package-manager-google-user-messaging-platform" */,
+			);
+			productRefGroup = 0A3E27B8CA818264D75C8D81 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				34A04005BCAF206EEC990BD9 /* KStep */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		41D311A605520FC7B8B9A980 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1AC0100000000000000000C9 /* InfoPlist.strings in Resources */,
+				1AC010000000000000000065 /* Localizable.strings in Resources */,
+				0A80A0B8549C3D5AB3BBC1FC /* KStep/Resources/Assets.xcassets in Resources */,
+				445B4DAFB0E123A139308F4D /* KStep/Resources/Commerce.json in Resources */,
+				16EB816FD26D57C86FA63242 /* KStep/Resources/PrivacyInfo.xcprivacy in Resources */,
+				A09B10000000000000000001 /* KStep/Resources/LaunchScreen.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		878A52FC5FF6A57D50B7B870 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C71000000000000000000005 /* KStep/Features/DancePracticeView.swift in Sources */,
+				C71000000000000000000003 /* KStep/Core/DancePracticeJournal.swift in Sources */,
+				C71000000000000000000001 /* KStep/App/StageTypography.swift in Sources */,
+				1AC010000000000000000002 /* KStep/App/AppLanguage.swift in Sources */,
+				4059FBA1D75B10A9F68ABDC0 /* KStep/App/KStepApp.swift in Sources */,
+				81F1CA728D14A09FCC01D07F /* KStep/App/DesignSystem.swift in Sources */,
+				79CDD73938BF2D09D9492954 /* KStep/Core/APIClient.swift in Sources */,
+				260CF880F17F5608D6824066 /* KStep/Core/CommerceStore.swift in Sources */,
+				C68F5643B660D6177C54038C /* KStep/Core/LibraryStore.swift in Sources */,
+				0FF11E000000000000000001 /* KStep/Core/OfflineStore.swift in Sources */,
+				E8A0A1000000000000000001 /* KStep/Core/LessonStreamExport.swift in Sources */,
+				C7F5D928DE552FB7782E6664 /* KStep/Core/LessonContracts.swift in Sources */,
+				327A09A6877BA42DD80120D2 /* KStep/Core/PlaybackController.swift in Sources */,
+				6AF10A27CB2DD141266F1710 /* KStep/Core/QuotaStore.swift in Sources */,
+				7B7855892215464D7C4CB60A /* KStep/Core/RewardedAds.swift in Sources */,
+				A44A83298DFF881F87AA0F94 /* KStep/Core/VideoEditor.swift in Sources */,
+				D0DFDA960A87B68556723DA1 /* KStep/Features/DiscoverView.swift in Sources */,
+				3208069C8A2559AFC43D06AE /* KStep/Features/PracticeVideoWorkspace.swift in Sources */,
+				7EAA15000000000000000001 /* KStep/Features/DanceGuideView.swift in Sources */,
+				8C78E63A9D2775413DFCA438 /* KStep/Features/HomeView.swift in Sources */,
+				FDC33C2406605B5455C36984 /* KStep/Features/LibraryView.swift in Sources */,
+				8CBAB9F374786F17F0527D7A /* KStep/Features/MembershipView.swift in Sources */,
+				ACCE55100000000000000001 /* KStep/Features/AccountAccessViews.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		1AC010000000000000000064 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				1AC010000000000000000066 /* en */,
+				1AC010000000000000000067 /* ko */,
+				1AC010000000000000000068 /* ja */,
+				1AC010000000000000000069 /* id */,
+				1AC01000000000000000006A /* pt */,
+				1AC01000000000000000006B /* ar */,
+				1AC01000000000000000006C /* es */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+		1AC0100000000000000000C8 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				1AC0100000000000000000CA /* en */,
+				1AC0100000000000000000CB /* ko */,
+				1AC0100000000000000000CC /* ja */,
+				1AC0100000000000000000CD /* id */,
+				1AC0100000000000000000CE /* pt */,
+				1AC0100000000000000000CF /* ar */,
+				1AC0100000000000000000D0 /* es */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		07CA1E69F6068DEA30A4DA6B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				STRIP_INSTALLED_PRODUCT = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		2B23A31EEC75B029432F2445 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		594BCDCC96599D88EF772A08 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 29492C6D58CC63AE5CCF1383 /* Config/KStep.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = KStep/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_STRICT_CONCURRENCY = targeted;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		EDDA600A3F771F810A8065C9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 29492C6D58CC63AE5CCF1383 /* Config/KStep.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = KStep/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_STRICT_CONCURRENCY = targeted;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1B672BF3DA427763BF644BE3 /* Build configuration list for PBXNativeTarget "KStep" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EDDA600A3F771F810A8065C9 /* Debug */,
+				594BCDCC96599D88EF772A08 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		76F8DEC3DFE0BDB465198890 /* Build configuration list for PBXProject "KStep" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2B23A31EEC75B029432F2445 /* Debug */,
+				07CA1E69F6068DEA30A4DA6B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		8D9B57A96758071C65350C25 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads.git";
+			requirement = {
+				kind = exactVersion;
+				version = 13.11.0;
+			};
+		};
+		A5A54C007ADCB895B9E4300F /* XCRemoteSwiftPackageReference "swift-package-manager-google-user-messaging-platform" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googleads/swift-package-manager-google-user-messaging-platform.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		0329FE2EF997A30C91906438 /* GoogleUserMessagingPlatform */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A5A54C007ADCB895B9E4300F /* XCRemoteSwiftPackageReference "swift-package-manager-google-user-messaging-platform" */;
+			productName = GoogleUserMessagingPlatform;
+		};
+		1E2EBF992EE4434C89FA31D5 /* GoogleMobileAds */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8D9B57A96758071C65350C25 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
+			productName = GoogleMobileAds;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 244210E48437B6556980A702 /* Project object */;
+}

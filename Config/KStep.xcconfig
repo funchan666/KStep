@@ -1,0 +1,23 @@
+// KStep — TEST configuration (toolkit fixed test values, Clipo baseline 0d55c2d).
+// Switch to production only after the user confirms testing passed; see Documentation/CONFIRMATIONS.md.
+PRODUCT_BUNDLE_IDENTIFIER = im.seex.lobo
+// getV2 `name`; keep the original capitalisation.
+KSTEP_RELEASE_NAME = KStep
+KSTEP_API_HOST = devapi.io-jp.com
+// Business packageName and guest-login source.
+KSTEP_SERVICE_PACKAGE_NAME = $(PRODUCT_BUNDLE_IDENTIFIER)
+// Empty expansion preserves // in xcconfig URL values. Placeholders until production.
+KSTEP_WEBSITE_URL = https:/$()/example.com/
+KSTEP_PRIVACY_URL = https:/$()/example.com/
+KSTEP_TERMS_URL = https:/$()/example.com/
+IPHONEOS_DEPLOYMENT_TARGET = 17.0
+SWIFT_VERSION = 5.0
+TARGETED_DEVICE_FAMILY = 1
+MARKETING_VERSION = 1.0.0
+CURRENT_PROJECT_VERSION = 1
+CODE_SIGN_STYLE = Automatic
+DEVELOPMENT_TEAM =
+// Google official iOS demo configuration (test builds only). Set NO and replace before publishing.
+KSTEP_ADS_TEST_MODE = YES
+KSTEP_GOOGLE_ADS_APP_ID = ca-app-pub-3940256099942544~1458002511
+OTHER_LDFLAGS = $(inherited) -ObjC

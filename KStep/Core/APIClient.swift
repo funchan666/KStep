@@ -1,0 +1,351 @@
+import Foundation
+import Combine
+import Security
+import UIKit
+import OSLog
+
+struct KStepConfiguration {
+    let apiBaseURL: URL?
+    let bundleID: String // Installed identity: signing and background transfers.
+    let servicePackageName: String // Backend registration, independent of this test build.
+    let version: String
+    let privacyURL: URL?
+    let termsURL: URL?
+    let websiteURL: URL?
+    // getV2 `name`: the registered app name, independent of the localized display name.
+    let releaseName: String
+    // Build-configured Google demo ads (test builds only). Production reads getV2.adList.
+    let adsTestMode: Bool
+    static var current: Self {
+        let bundle = Bundle.main
+        let host = (bundle.object(forInfoDictionaryKey: "KStepAPIHost") as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let base = host.isEmpty || host.contains("$(") ? nil : URL(string: "https://" + host)
+        return Self(apiBaseURL: base, bundleID: bundle.bundleIdentifier ?? "",
+                    servicePackageName: (bundle.object(forInfoDictionaryKey: "KStepServicePackageName") as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines),
+                    version: bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0.0",
+                    privacyURL: WebAddress.media(bundle.object(forInfoDictionaryKey: "KStepPrivacyURL") as? String),
+                    termsURL: WebAddress.media(bundle.object(forInfoDictionaryKey: "KStepTermsURL") as? String),
+                    websiteURL: WebAddress.media(bundle.object(forInfoDictionaryKey: "KStepWebsiteURL") as? String),
+                    releaseName: (bundle.object(forInfoDictionaryKey: "KStepReleaseName") as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines),
+                    adsTestMode: (bundle.object(forInfoDictionaryKey: "KStepAdsTestMode") as? String) == "YES")
+    }
+    var isReady: Bool {
+        apiBaseURL?.host != nil && !bundleID.isEmpty && !bundleID.contains("unconfigured")
+            && !servicePackageName.isEmpty && !servicePackageName.contains("$(")
+            && !releaseName.isEmpty && !releaseName.contains("$(")
+    }
+}
+
+
+enum SecureStorage {
+    private static let service = "KStep.Session"
+    static func read(_ key: String) throws -> Data? {
+        let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service, kSecAttrAccount as String: key,
+            kSecReturnData as String: true, kSecMatchLimit as String: kSecMatchLimitOne]
+        var result: CFTypeRef?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        if status == errSecItemNotFound { return nil }
+        guard status == errSecSuccess, let data = result as? Data else { throw KStepError.storage }
+        return data
+    }
+    static func write(_ data: Data, key: String) throws {
+        let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service, kSecAttrAccount as String: key]
+        let status = SecItemUpdate(query as CFDictionary, [kSecValueData as String: data] as CFDictionary)
+        if status == errSecItemNotFound {
+            var insert = query
+            insert[kSecValueData as String] = data
+            insert[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+            guard SecItemAdd(insert as CFDictionary, nil) == errSecSuccess else { throw KStepError.storage }
+        } else if status != errSecSuccess { throw KStepError.storage }
+        guard try read(key) == data else { throw KStepError.storage }
+    }
+    static func remove(_ key: String) throws {
+        let status = SecItemDelete([kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service, kSecAttrAccount as String: key] as CFDictionary)
+        guard status == errSecSuccess || status == errSecItemNotFound else { throw KStepError.storage }
+    }
+}
+
+enum InstallationIdentity {
+    static func prepare() throws {
+        let files = FileManager.default
+        let support = files.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        try files.createDirectory(at: support, withIntermediateDirectories: true)
+        var marker = support.appendingPathComponent("KStepInstallation")
+        let existing = try? String(contentsOf: marker, encoding: .utf8)
+        if existing == "ready" { return }
+        // Older versions always created this sandbox directory. Preserve their UUID on
+        // upgrade; an uninstall removes it. Keychain alone is not evidence of an install.
+        let legacyLibrary = files.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("KStepMedia", isDirectory: true)
+        if existing == "reset" || !files.fileExists(atPath: legacyLibrary.path) {
+            // Persist reset intent before touching Keychain so an interrupted reset
+            // cannot be mistaken for a legacy upgrade on the next launch.
+            try Data("reset".utf8).write(to: marker, options: .atomic)
+            try SecureStorage.remove("visitor")
+            try SecureStorage.remove("installation")
+        }
+        // Purchase ledgers deliberately survive: unpaid/undelivered orders retain owners.
+        try Data("ready".utf8).write(to: marker, options: .atomic)
+        var values = URLResourceValues()
+        values.isExcludedFromBackup = true
+        try marker.setResourceValues(values)
+    }
+}
+
+@MainActor
+final class APIClient: ObservableObject {
+    private let diagnostics = Logger(subsystem: "app.kstep", category: "API")
+    @Published private(set) var session: VisitorSession?
+    // Local ownership only: never use this as authentication or purchase entitlement.
+    @Published private(set) var offlineOwnerID: String?
+    let configuration: KStepConfiguration
+    private let transport: URLSession
+    private var loginTask: Task<VisitorSession, Error>?
+    private var sessionGeneration = UUID()
+    private var storageFailure: Error?
+
+    init(configuration: KStepConfiguration = .current) {
+        self.configuration = configuration
+        let config = URLSessionConfiguration.ephemeral
+        config.timeoutIntervalForRequest = 15
+        config.timeoutIntervalForResource = 30
+        transport = URLSession(configuration: config)
+        do {
+            try InstallationIdentity.prepare()
+            if let installation = try SecureStorage.read("installation"), !installation.isEmpty,
+               let data = try SecureStorage.read("visitor"),
+               let visitor = try? JSONDecoder().decode(VisitorSession.self, from: data) {
+                offlineOwnerID = visitor.userId.value.nilIfBlank
+            }
+            // A persisted token is not a completed login for this process. Every cold
+            // start authenticates again with the existing installation UUID. Keep the
+            // stored credentials and purchase ledger intact for recovery ownership.
+        } catch {
+            session = nil
+            storageFailure = error
+        }
+    }
+
+    // Once per process after success; concurrent startup/retry callers share loginTask.
+    // Background returns and view/layout changes reuse this process's live session.
+    func prepareVisitor() async throws {
+        guard session == nil else { return }
+        _ = try await signIn()
+    }
+
+    @discardableResult func signIn() async throws -> VisitorSession {
+        guard configuration.isReady else { throw KStepError.configuration }
+        if let storageFailure { throw storageFailure }
+        if let loginTask { return try await loginTask.value }
+        let generation = sessionGeneration
+        let task = Task<VisitorSession, Error> { [self] in
+            let device: String
+            if let stored = try SecureStorage.read("installation"), let saved = String(data: stored, encoding: .utf8), !saved.isEmpty {
+                device = saved
+            } else {
+                device = UUID().uuidString
+                try SecureStorage.write(Data(device.utf8), key: "installation")
+            }
+            let publicIPv4 = try await loginPublicIPv4()
+            try Task.checkCancellation()
+            let body = try JSONSerialization.data(withJSONObject: ["deviceCode": device, "source": configuration.servicePackageName, "uniqueId": publicIPv4])
+            // Diagnose the wire payload without logging the IP, UUID or credentials.
+            diagnostics.debug("Guest login payload: uniqueId IPv4 present \(!publicIPv4.isEmpty)")
+            let result: VisitorSession = try await perform("/app-api/member/auth/app_tourist_login", method: "POST", body: body, authenticated: false)
+            guard !result.accessToken.isEmpty, !result.userId.value.isEmpty else { throw KStepError.invalidResponse }
+            try Task.checkCancellation()
+            guard generation == sessionGeneration else { throw CancellationError() }
+            try SecureStorage.write(JSONEncoder().encode(result), key: "visitor")
+            session = result
+            offlineOwnerID = result.userId.value
+            return result
+        }
+        loginTask = task
+        defer { loginTask = nil }
+        return try await task.value
+    }
+
+    private func loginPublicIPv4() async throws -> String {
+        // These public services receive no account credentials or installation ID.
+        // A fresh, uncached lookup follows the current connection on each login.
+        let config = URLSessionConfiguration.ephemeral
+        config.timeoutIntervalForRequest = 2
+        config.timeoutIntervalForResource = 2
+        config.waitsForConnectivity = false
+        config.urlCache = nil
+        config.httpCookieStorage = nil
+        config.urlCredentialStorage = nil
+        let lookup = URLSession(configuration: config)
+        defer { lookup.invalidateAndCancel() }
+        // Race independent providers: a slow primary must not add its timeout
+        // to the fallback. Only a valid response wins; cancel the other request.
+        return try await withThrowingTaskGroup(of: String.self) { group in
+            for address in ["https://ipv4.icanhazip.com", "https://api.ipify.org/"] {
+                group.addTask { try await Self.readPublicIPv4(address, using: lookup) }
+            }
+            for try await candidate in group where !candidate.isEmpty {
+                group.cancelAll()
+                return candidate
+            }
+            try Task.checkCancellation()
+            return "" // Both failed; the login contract permits an empty value.
+        }
+    }
+
+    private nonisolated static func readPublicIPv4(_ address: String, using lookup: URLSession) async throws -> String {
+        guard let url = URL(string: address) else { return "" }
+        var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 2)
+        request.httpMethod = "GET"
+        request.setValue("text/plain", forHTTPHeaderField: "Accept")
+        do {
+            let (data, response) = try await lookup.data(for: request)
+            try Task.checkCancellation()
+            guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode),
+                  data.count <= 64, let text = String(data: data, encoding: .utf8) else { return "" }
+            let candidate = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            let octets = candidate.split(separator: ".", omittingEmptySubsequences: false)
+            guard octets.count == 4, octets.allSatisfy({ octet in
+                !octet.isEmpty && octet.utf8.allSatisfy { (48...57).contains($0) } && UInt8(octet) != nil
+            }) else { return "" }
+            return candidate
+        } catch {
+            try Task.checkCancellation()
+            return ""
+        }
+    }
+
+    func releaseConfiguration() async throws -> ReleaseConfiguration {
+        guard let session else { throw KStepError.unauthorized }
+        return try await perform("/app-api/flow/release-package/getV2", query: [
+            "platform": "IOS", "name": configuration.releaseName, "version": configuration.version,
+            "lang": AppLanguage.current.rawValue, "userId": session.userId.value,
+            "time": TimeZone.current.identifier, "input": UITextInputMode.activeInputModes.compactMap(\.primaryLanguage).joined(separator: ",")
+        ], authenticated: false)
+    }
+    func channels(links: [String]) async throws -> [LandingInfo] {
+        let codes = links.compactMap { WebAddress.landingCode($0) }
+        guard !codes.isEmpty else { return [] }
+        let body = try JSONSerialization.data(withJSONObject: codes.map {
+            ["externalLinks": $0, "packageName": configuration.servicePackageName]
+        })
+        return try await perform("/app-api/flow/land-page/info_by_links_list", method: "POST", body: body, authenticated: false)
+    }
+    func resolve(_ link: String, password: String) async throws -> LandingInfo {
+        try await perform("/app-api/flow/land-page/info_by_links", query: [
+            "externalLinks": link, "password": password, "packageName": configuration.servicePackageName],
+            missingDataMessage: "No content was returned for this link. Check the code, including uppercase and lowercase letters, or try again later.")
+    }
+    func channelPage(link: String, page: Int) async throws -> ChannelPage {
+        try await perform("/app-api/flow/land-page/list_by_links_page", query: [
+            "externalLinks": link, "pageNo": String(max(1, page)), "pageSize": "20", "packageName": configuration.servicePackageName])
+    }
+    func feed(query: String, feedID: String?, cursor: String?) async throws -> LessonFeedPage {
+        guard let session else { throw KStepError.unauthorized }
+        var queryItems = ["userId": session.userId.value, "packageName": configuration.servicePackageName, "pageSize": "10"]
+        if let feedID = feedID?.nilIfBlank { queryItems["feedId"] = feedID }
+        if let cursor = cursor?.nilIfBlank { queryItems["cursor"] = cursor }
+        if let query = query.nilIfBlank { queryItems["query"] = query }
+        return try await perform("/app-api/flow/search-check", query: queryItems, emptyDataValue: LessonFeedPage.empty)
+    }
+
+    func rights() async throws -> UserRights {
+        try await perform("/app-api/member/user/get")
+    }
+    // Payment requests use the immutable order owner. They never silently rebind to a renewed guest.
+    func paymentRequest(path: String, body: [String: Any], owner: VisitorSession) async throws -> Data {
+        guard configuration.isReady, let base = configuration.apiBaseURL else { throw KStepError.configuration }
+        var request = URLRequest(url: base.appendingPathComponent(path))
+        request.httpMethod = "POST"
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(owner.accessToken)", forHTTPHeaderField: "Authorization")
+        let (data, response) = try await send(request)
+        guard let http = response as? HTTPURLResponse else { throw KStepError.invalidResponse }
+        if http.statusCode == 401 { throw KStepError.unauthorized }
+        guard (200..<300).contains(http.statusCode) else { throw KStepError.service("Purchase service is unavailable (\(http.statusCode)).") }
+        struct Status: Decodable { let code: Int; let msg: String? }
+        let status = try JSONDecoder().decode(Status.self, from: data)
+        guard status.code == 0 else { throw KStepError.service(status.msg ?? "Purchase confirmation failed.") }
+        return data
+    }
+
+    private func perform<Value: Decodable>(_ path: String, method: String = "GET", query: [String: String] = [:],
+                                           body: Data? = nil, authenticated: Bool = true, retry: Bool = true,
+                                           missingDataMessage: String? = nil, emptyDataValue: Value? = nil) async throws -> Value {
+        guard configuration.isReady, let base = configuration.apiBaseURL,
+              var components = URLComponents(url: base.appendingPathComponent(path), resolvingAgainstBaseURL: false) else { throw KStepError.configuration }
+        var effectiveQuery = query
+        // A renewed visitor can have a different user ID.
+        if authenticated, effectiveQuery["userId"] != nil { effectiveQuery["userId"] = session?.userId.value }
+        components.queryItems = effectiveQuery.sorted { $0.key < $1.key }.map { URLQueryItem(name: $0.key, value: $0.value) }
+        guard let url = components.url else { throw KStepError.configuration }
+        #if DEBUG
+        // Targeted request diagnostics: never emit credentials or the entered search text.
+        if path == "/app-api/flow/release-package/getV2" {
+            diagnostics.debug("Release configuration name: \(effectiveQuery["name"] ?? "", privacy: .public)")
+        } else if path == "/app-api/flow/search-check" {
+            diagnostics.debug("Search request: query UTF-8 bytes \(effectiveQuery["query"]?.utf8.count ?? 0), paginated \(effectiveQuery["cursor"] != nil)")
+        }
+        #endif
+        var request = URLRequest(url: url)
+        request.httpMethod = method
+        request.httpBody = body
+        request.setValue("application/json, text/plain, */*", forHTTPHeaderField: "Accept")
+        if body != nil { request.setValue("application/json", forHTTPHeaderField: "Content-Type") }
+        let usedToken = session?.accessToken
+        if authenticated {
+            guard let usedToken else { throw KStepError.unauthorized }
+            request.setValue("Bearer \(usedToken)", forHTTPHeaderField: "Authorization")
+        }
+        let generation = sessionGeneration
+        let (data, response) = try await send(request)
+        try Task.checkCancellation()
+        if authenticated, generation != sessionGeneration { throw CancellationError() }
+        guard let response = response as? HTTPURLResponse else { throw KStepError.invalidResponse }
+        #if DEBUG
+        // Never log tokens, passwords, query values, user IDs or response bodies.
+        diagnostics.debug("\(method, privacy: .public) \(path, privacy: .public) HTTP \(response.statusCode)")
+        #endif
+        if response.statusCode == 401, authenticated {
+            guard retry else { throw KStepError.unauthorized }
+            if session?.accessToken == usedToken { try await signIn() }
+            return try await perform(path, method: method, query: query, body: body, authenticated: true, retry: false,
+                                     missingDataMessage: missingDataMessage, emptyDataValue: emptyDataValue)
+        }
+        guard (200..<300).contains(response.statusCode) else {
+            throw KStepError.service("The service is unavailable (\(response.statusCode)). Please try again.")
+        }
+        let result: APIEnvelope<Value>
+        do { result = try JSONDecoder().decode(APIEnvelope<Value>.self, from: data) }
+        catch {
+            #if DEBUG
+            diagnostics.error("\(path, privacy: .public): response decoding failed")
+            #endif
+            throw KStepError.invalidResponse
+        }
+        #if DEBUG
+        diagnostics.debug("\(path, privacy: .public): business code \(result.code), data present \(result.data != nil)")
+        #endif
+        guard result.code == 0 else { throw KStepError.service(result.msg?.nilIfBlank ?? "The request could not be completed.") }
+        guard let value = result.data ?? emptyDataValue else {
+            if let missingDataMessage { throw KStepError.service(missingDataMessage) }
+            throw KStepError.invalidResponse
+        }
+        return value
+    }
+
+    private func send(_ request: URLRequest) async throws -> (Data, URLResponse) {
+        do { return try await transport.data(for: request) }
+        catch {
+            #if DEBUG
+            let code = (error as NSError).code
+            diagnostics.error("\(request.url?.path ?? "", privacy: .public): transport failed (\(code))")
+            #endif
+            throw KStepError.connectionFailure(error)
+        }
+    }
+}

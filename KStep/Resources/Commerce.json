@@ -1,0 +1,12 @@
+{
+  "products": [
+    {"id": "coins_1.99", "usdPrice": "999", "label": "Monthly", "displayPriceUSD": "9.99", "period": "month"},
+    {"id": "conis_4.99", "usdPrice": "9999", "label": "Yearly", "displayPriceUSD": "99.99", "period": "year"}
+  ],
+  "rewardedAdType": 5,
+  "unlimitedAfterCompletedAds": 4,
+  "favoriteReward": 5,
+  "dailyWatchLimit": 5,
+  "dailyFavoriteLimit": 5,
+  "watchRewards": [3, 3, 3]
+}

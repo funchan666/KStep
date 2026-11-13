@@ -29,6 +29,7 @@ struct HomeView: View {
     @SceneStorage("rehearsal.tempo") private var tempo = PracticeTempo.threeQuarters
     @FocusState private var focused: Bool
     @ScaledMetric(relativeTo: .subheadline) private var minimumInlineWidth: CGFloat = 230
+    @ScaledMetric(relativeTo: .footnote) private var inlineTempoWidth: CGFloat = 48
     private let pasteErrorMessage = "Copy a lesson link or code, then tap Paste."
 
     var body: some View {
@@ -133,7 +134,7 @@ struct HomeView: View {
     }
 
     private var rehearsalPanel: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 10) {
             LocalizedText("Eight-count")
                 .font(.stage(.title2, display: true))
                 .fixedSize(horizontal: false, vertical: true)
@@ -167,17 +168,17 @@ struct HomeView: View {
     }
 
     private func beatGrid(columns: Int) -> some View {
-        Grid(horizontalSpacing: 6, verticalSpacing: 6) {
+        let title = L10n.text("Eight-count", language: AppLanguage.from(locale))
+        return Grid(horizontalSpacing: 6, verticalSpacing: 6) {
             ForEach(0..<(8 / columns), id: \.self) { row in
                 GridRow {
                     ForEach(1...columns, id: \.self) { column in
                         let count = row * columns + column
                         let selected = beat == count
                         let number = count.formatted(.number.locale(locale))
-                        let title = L10n.text("Eight-count", language: AppLanguage.from(locale))
                         Button { beat = count } label: {
                             Text(verbatim: number)
-                                .font(.stage(.title3, weight: selected ? .bold : .semibold))
+                                .font(.stage(.title3, weight: .semibold))
                                 .monospacedDigit()
                                 .fixedSize()
                                 .padding(.horizontal, 8)
@@ -217,17 +218,18 @@ struct HomeView: View {
 
     private func tempoSelector(inline: Bool) -> some View {
         let layout = inline ? AnyLayout(HStackLayout(spacing: 2)) : AnyLayout(VStackLayout(spacing: 2))
+        let minimumWidth = inline ? max(44, inlineTempoWidth) : 44
         return layout {
             ForEach(PracticeTempo.allCases) { value in
                 let selected = tempo == value
                 Button { tempo = value } label: {
                     LocalizedText(value.label)
-                        .font(.stage(.footnote, weight: selected ? .bold : .medium).monospacedDigit())
+                        .font(.stage(.footnote, weight: .semibold).monospacedDigit())
                         .fixedSize(horizontal: inline, vertical: true)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 6)
-                        .frame(minWidth: 44, maxWidth: .infinity, minHeight: 44)
-                        .background(selected ? KStepStyle.mist.opacity(0.24) : .clear,
+                        .frame(minWidth: minimumWidth, maxWidth: .infinity, minHeight: 44)
+                        .background(selected ? KStepStyle.mist.opacity(0.32) : .clear,
                                     in: RoundedRectangle(cornerRadius: 9))
                         .contentShape(Rectangle())
                 }.buttonStyle(PressStyle())

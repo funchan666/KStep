@@ -495,7 +495,6 @@ struct MatteActionStyle: ButtonStyle {
 struct ChoiceStrip: View {
     let values: [String]
     let selected: String
-    var onGlass = false
     let select: (String) -> Void
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -507,14 +506,8 @@ struct ChoiceStrip: View {
                             .fixedSize(horizontal: true, vertical: false)
                             .padding(.horizontal, 16).padding(.vertical, 10)
                             .frame(minHeight: 44)
-                            .foregroundStyle(selected == value && !onGlass ? KStepStyle.ink : KStepStyle.paper)
-                            .background {
-                                if onGlass {
-                                    Capsule().fill(selected == value ? KStepStyle.paper.opacity(0.22) : .clear)
-                                } else {
-                                    StageSurface(tone: selected == value ? .accent : .plum)
-                                }
-                            }
+                            .foregroundStyle(selected == value ? KStepStyle.ink : KStepStyle.paper)
+                            .background { StageSurface(tone: selected == value ? .accent : .plum) }
                             .contentShape(Rectangle())
                     }.buttonStyle(PressStyle())
                         .accessibilityAddTraits(selected == value ? .isSelected : [])

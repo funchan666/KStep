@@ -48,13 +48,15 @@ struct ToolsView: View {
         StageScrollView { topInset in
             VStack(spacing: 0) {
                 StagePhotoHeader(artwork: "ReviewStudio", height: 262, topInset: topInset) {
-                    VStack(alignment: .leading, spacing: 12) {
+                    VStack(spacing: 12) {
                         LocalizedText("Film and review")
                             .font(.stage(.largeTitle, display: true))
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityAddTraits(.isHeader)
                         reviewButton
-                    }.stageColumn().padding(.top, 98).padding(.bottom, 12)
+                    }
+                    .multilineTextAlignment(.center)
+                    .stageColumn().padding(.top, 98).padding(.bottom, 12)
                 }
                 VStack(alignment: .leading, spacing: 20) {
                     VStack(spacing: 0) {

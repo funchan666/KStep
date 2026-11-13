@@ -7,7 +7,7 @@ Open `KStep.xcodeproj` and select the shared `KStep` scheme. The minimum deploym
 ## Test configuration
 
 - API host `devapi.io-jp.com` and `getV2.name` `KStep`.
-- Bundle ID `im.seex.lobo` in `Config/KStep.xcconfig`. The guest login source and business package name derive from the same setting. These test apps share a Bundle ID, so install them one at a time.
+- KStep uses `com.kstepstudio.eightcount` as its Bundle ID in `Config/KStep.xcconfig`. Guest login `source` and business `packageName` derive from that setting.
 - Google iOS demo App ID, app-open and rewarded units. Membership requests `coins_1.99` monthly (USD 9.99) and `conis_4.99` yearly (USD 99.99) in Apple Sandbox. The app displays the prices returned by StoreKit.
 - Website, terms and privacy point to HTTPS placeholders.
 
@@ -15,7 +15,7 @@ For playback integration, enter the Clipo test short code from the Toolkit on Ho
 
 ## Production transition
 
-After test acceptance, update the Bundle ID, API domain, AdMob configuration, official links and registered membership mapping for this app. The release configuration name stays `KStep`. Check backend registration, receipt routing and signing against the effective build settings.
+After test acceptance, configure the API domain, AdMob, official links and membership mapping for production. Verify backend registration and signing for `com.kstepstudio.eightcount`, receipt routing and the `KStep` release configuration name against the effective build settings.
 
 ## Verification
 

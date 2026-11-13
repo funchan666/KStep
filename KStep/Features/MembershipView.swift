@@ -512,7 +512,6 @@ struct AccountView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     LocalizedText(commerce.premium ? "Plus active" : "Free plan")
                         .font(.stage(.caption, weight: .semibold))
-                        .foregroundStyle(KStepStyle.paperSecondary)
                     LocalizedText(commerce.premium ? "Manage membership" : "Explore Plus")
                         .font(.stage(.headline))
                 }.fixedSize(horizontal: false, vertical: true)
@@ -522,7 +521,7 @@ struct AccountView: View {
             .padding(.horizontal, 16).padding(.vertical, 12)
             .frame(maxWidth: .infinity, minHeight: 60, alignment: .leading)
             .foregroundStyle(KStepStyle.ink)
-            .background(KStepStyle.paper, in: shape)
+            .background(KStepStyle.accent, in: shape)
             .contentShape(shape)
         }.buttonStyle(PressStyle()).disabled(unavailable)
             .accessibilityIdentifier("account.membership")

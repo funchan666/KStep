@@ -1,6 +1,6 @@
-// KStep — TEST configuration (toolkit fixed test values, Clipo baseline 0d55c2d).
-// Switch to production only after the user confirms testing passed; see Documentation/CONFIRMATIONS.md.
-PRODUCT_BUNDLE_IDENTIFIER = im.seex.lobo
+// KStep uses its own bundle ID with the toolkit test services (Clipo baseline 0d55c2d).
+// See Documentation/CONFIRMATIONS.md for the production transition.
+PRODUCT_BUNDLE_IDENTIFIER = com.kstepstudio.eightcount
 // getV2 `name`; keep the original capitalisation.
 KSTEP_RELEASE_NAME = KStep
 KSTEP_API_HOST = devapi.io-jp.com

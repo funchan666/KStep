@@ -20,7 +20,7 @@
 "A little knowledge for your next session." = "次の練習に役立つ、小さな知識。";
 "A little luck, on us" = "ささやかなボーナスをどうぞ";
 "A right-handed player's backhand is usually struck on the left side of the body, slightly in front. A left-handed player reverses the sides. Give yourself room instead of letting the ball arrive too close." = "右利きのバックハンドは通常、体の左側の少し前で打ちます。左利きは逆です。ボールが近づきすぎないよう、余裕を持って構えましょう。";
-"A secure connection to KStep could not be established. Check your network or VPN, then try again. If it continues, the service may be temporarily unavailable." = "KStepに安全に接続できません。ネットワークやVPNを確認して再試行してください。問題が続く場合、サービスが一時的に利用できない可能性があります。";
+"Couldn’t connect securely. Check your network or VPN, then try again. If it continues, the service may be temporarily unavailable." = "安全に接続できませんでした。ネットワークやVPNを確認して、もう一度お試しください。問題が続く場合、サービスが一時的に利用できない可能性があります。";
 "A serve starts with the toss." = "サーブはトスから。";
 "A short guide to following the score." = "スコアを理解するためのミニガイド。";
 "Access password" = "アクセス用パスワード";
@@ -70,8 +70,7 @@
 "Choose your language" = "言語を選択";
 "Choose your practice footage in Tools to keep a local working copy." = "ツールで練習動画を選ぶと、作業用コピーを端末に保存できます。";
 "Clear" = "消去";
-"KStep is starting" = "KStepを起動中";
-"KStep’s online service is not configured yet. Local editing is available." = "KStepのオンラインサービスは未設定です。端末内の編集は利用できます。";
+"The online service is not configured yet. Local editing is available." = "オンラインサービスは未設定です。端末内のファイルは編集できます。";
 "Close" = "閉じる";
 "Confirming your purchase…" = "購入を確認中…";
 "Connecting your lesson feed…" = "レッスンフィードに接続中…";
@@ -141,6 +140,7 @@
 "If a payment is waiting to be confirmed, retry without purchasing again." = "支払いが確認待ちの場合、再購入せずに確認を再試行してください。";
 "If the server has won two points and the receiver one, the score is 30–15." = "サーバーが2ポイント、レシーバーが1ポイント取った場合、スコアは30–15です。";
 "Imported video" = "読み込んだ動画";
+"Video" = "動画";
 "Importing…" = "読み込み中…";
 "Imports" = "読み込み済み";
 "In standard advantage scoring, zero is called love. The next points are 15, 30 and 40. A player wins a game with at least four points and a lead of two. The server's score is announced first." = "通常のアドバンテージ方式では0点をラブと呼び、15、30、40と進みます。4ポイント以上取り、2ポイント差をつけるとゲームを獲得します。サーバーの点を先に読みます。";
@@ -284,7 +284,7 @@
 "Test ads require Google's sample iOS App ID." = "テスト広告にはGoogleのサンプルiOSアプリIDが必要です。";
 "The Championships are held at the All England Club. Wimbledon is the only one of the four majors still played on grass." = "ウィンブルドンはオールイングランド・クラブで開催されます。4大大会の中で、今も芝で行われる唯一の大会です。";
 "The ad finished, but its reward could not be saved. %@" = "広告は完了しましたが、報酬を保存できませんでした。%@";
-"The copy in KStep will be removed. The original in Photos or Files will stay untouched." = "KStep内のコピーを削除します。写真やファイルにある元の動画は変更されません。";
+"This removes the library copy. Your original stays in Photos or Files." = "ライブラリのコピーを削除します。元の動画は「写真」または「ファイル」に残ります。";
 "The direction of the racket face at contact strongly affects where the ball goes. Begin with a comfortable swing and aim to keep the ball in play. Add pace and spin as your contact becomes more reliable." = "打球時のラケット面の向きは、ボールの行き先を大きく左右します。無理のないスイングでラリーを続けることから始め、打点が安定したら速度や回転を加えましょう。";
 "The document was interrupted. Please try again." = "ドキュメントの読み込みが中断されました。再試行してください。";
 "The export finished but could not be added to your library. %@" = "書き出しは完了しましたが、ライブラリに追加できませんでした。%@";
@@ -473,7 +473,6 @@
 "Download could not be saved. Please try again. (%@)" = "ダウンロードを保存できませんでした。もう一度お試しください。(%@)";
 "Loading ad…" = "広告を読み込み中…";
 "Exporting…" = "書き出し中…";
-"This stream can be watched offline in KStep but cannot be exported." = "この動画はKStepでオフライン視聴できますが、書き出しはできません。";
 
 "Finish downloading this video to export it." = "ダウンロードが完了すると、動画を書き出せます。";
 
@@ -522,12 +521,8 @@
 "Finish this ad for unlimited downloads today." = "広告を最後まで見ると、今日は無制限でダウンロードできます。";
 "Connect to refresh your allowance." = "利用回数を更新するには接続してください。";
 
-"KStep link or lesson code" = "KStepのリンクまたはレッスンコード";
 "Paste" = "ペースト";
 "Open lesson" = "レッスンを開く";
-"Use a lesson link or code shared through KStep." = "KStepで共有されたレッスンのリンクまたはコードを使ってください。";
-"Copy a KStep link or lesson code first, then tap Paste." = "先にKStepのリンクまたはレッスンコードをコピーしてから「ペースト」をタップしてください。";
-"1. Copy a KStep link" = "1. KStepのリンクをコピー";
 "Tap Paste or enter the lesson code exactly as received. Codes are case-sensitive." = "「ペースト」をタップするか、受け取ったレッスンコードをそのまま入力してください。大文字と小文字は区別されます。";
 "Tap Open lesson to find matching lessons, then swipe to watch." = "「レッスンを開く」をタップして該当するレッスンを探し、スワイプして視聴します。";
 
@@ -535,14 +530,20 @@
 "The browser could not open. Please try again." = "ブラウザを開けませんでした。もう一度お試しください。";
 "Connect to verify your Plus membership before exporting." = "書き出す前にインターネットに接続してPlus会員資格を確認してください。";
 "Export is included with Plus." = "書き出しはPlusの会員特典です。";
-"Unlimited views, downloads and media exports." = "視聴、ダウンロード、メディアの書き出しが無制限。";
-"No matching lessons. Search the web with your original input." = "一致するレッスンはありません。入力した内容でウェブを検索できます。";
+"Included with Plus" = "Plusの特典";
+"Unlimited lesson views" = "レッスン見放題";
+"Unlimited offline downloads" = "オフライン視聴用のダウンロードが無制限";
+"No ads on launch" = "アプリ起動時の広告なし";
+"Export edited videos as MP4" = "編集した動画をMP4で書き出し";
 
 "Official website" = "公式サイト";
 
 "Subscribe" = "登録する";
 
 "Billed every %@" = "%@ごとに請求";
+"Choose a plan" = "プランを選ぶ";
+"Billed monthly" = "毎月請求";
+"Billed yearly" = "毎年請求";
 
 "Apple updated this plan. Review the price and billing period, then continue." = "Appleのプラン情報が更新されました。価格と請求周期を確認してから続けてください。";
 
@@ -555,3 +556,53 @@
 "The distribution package does not exist" = "アプリの配信設定が見つかりません。";
 "Web search" = "ウェブ検索";
 "Opening page…" = "ページを開いています…";
+
+"Rehearsal library" = "ダンス練習ライブラリ";
+"Rehearsal pass" = "リハーサルパス";
+
+/* Home and practice shortcuts */
+"Learn the chorus one eight-count at a time." = "サビの振り付けを8カウントずつ覚えよう。";
+"Practice room" = "練習ルーム";
+"Couldn’t load lesson collections" = "レッスン集を読み込めませんでした";
+"Find a lesson" = "レッスンを探す";
+"Unlimited lesson views today" = "今日はレッスン見放題";
+"Couldn’t check remaining views" = "残りの視聴回数を確認できません";
+"Checking remaining views…" = "残りの視聴回数を確認中…";
+"%@ lesson view left today" = "今日のレッスン視聴はあと%@回";
+"%@ lesson views left today" = "今日のレッスン視聴はあと%@回";
+"Link & code help" = "リンクとコードの使い方";
+"Copy a lesson link or code, then tap Paste." = "レッスンのリンクかコードをコピーし、「貼り付け」をタップしてください。";
+"Couldn’t open the lesson" = "レッスンを開けませんでした";
+"Browse lessons" = "レッスンを探す";
+"Review video" = "動画を見返す";
+"Lesson links and codes" = "レッスンのリンクとコード";
+"Paste a link or enter a code" = "リンクを貼り付けるか、コードを入力";
+"Enter the code exactly as shared, including capital letters." = "大文字と小文字を含め、共有されたとおりにコードを入力してください。";
+"Rehearsal log" = "練習ログ";
+"Track each run by section and eight-count." = "曲のパートと8カウントごとに練習を記録しよう。";
+"Dance notes" = "ダンスノート";
+"5, 6, 7, 8!" = "5, 6, 7, 8!";
+
+"Rehearsal" = "リハーサル";
+"Eight-count" = "8カウント";
+"Practice speed" = "練習速度";
+"Open a dance lesson" = "ダンスレッスンを開く";
+"Choreo collections" = "振り付けコレクション";
+
+/* Stage screens */
+"Continue to app" = "アプリを開く";
+"No lessons yet" = "レッスンはまだありません";
+"Couldn’t load lessons" = "レッスンを読み込めませんでした";
+"No matching lessons" = "該当するレッスンがありません";
+"Search the web with what you entered." = "入力した内容でウェブ検索できます。";
+"Paste a shared lesson link or short code to start practicing." = "共有されたレッスンリンクや短いコードを貼り付けて、練習を始めましょう。";
+"My studio" = "マイスタジオ";
+"Explore Plus" = "Plusのプランを見る";
+"Lesson views" = "レッスン視聴";
+"Checking today’s allowance…" = "今日の利用枠を確認中…";
+"Settings" = "設定";
+"Remaining today" = "今日の残り";
+"Film and review" = "撮影と振り返り";
+"Review my dance video" = "ダンス動画を見返す";
+"Slow down a tricky eight-count." = "難しい8カウントをゆっくり練習できます。";
+"Crop, rotate or mirror your dance video." = "ダンス動画の切り抜き、回転、左右反転ができます。";

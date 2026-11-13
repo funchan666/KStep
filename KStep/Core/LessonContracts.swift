@@ -260,6 +260,25 @@ struct GoogleAdPlacement {
     let appID: String
     let unitID: String
     let isOfficialDemo: Bool
+
+    // Test units come from the build, including when getV2 returns no configuration.
+    // Production requires a matching server placement and the SDK's packaged App ID.
+    static func resolve(for type: Int, release: ReleaseConfiguration?,
+                        packagedAppID: String?, testMode: Bool) -> Self? {
+        if testMode { return GoogleDemoAds.placement(for: type, packagedAppID: packagedAppID) }
+        guard packagedAppID != GoogleDemoAds.appID else { return nil }
+        let matches = (release?.adList ?? []).filter {
+            $0.adType == type && $0.advertiser?.lowercased() == "google"
+        }
+        guard matches.count == 1, let unit = matches.first,
+              let appID = unit.config.appId?.nilIfBlank,
+              let unitID = unit.config.adUnitId?.nilIfBlank,
+              appID == packagedAppID,
+              appID.range(of: #"^ca-app-pub-[0-9]{16}~[0-9]{10}$"#, options: .regularExpression) != nil,
+              unitID.range(of: #"^ca-app-pub-[0-9]{16}/[0-9]{10}$"#, options: .regularExpression) != nil,
+              appID.split(separator: "~").first == unitID.split(separator: "/").first else { return nil }
+        return Self(appID: appID, unitID: unitID, isOfficialDemo: false)
+    }
 }
 enum GoogleDemoAds {
     // Google's official iOS demo identity. Only build-configured test builds may use it.
@@ -275,27 +294,6 @@ enum GoogleDemoAds {
         case 5: return GoogleAdPlacement(appID: appID, unitID: rewardedUnitID, isOfficialDemo: true)
         default: return nil
         }
-    }
-}
-
-extension ReleaseConfiguration {
-    // Production: App ID comes from getV2 and must agree with the SDK's packaged identity.
-    // Never substitute a sample ad unit for a missing or invalid server value.
-    // Test mode: the build configuration selects Google's official demo units instead.
-    func googlePlacement(for type: Int, packagedAppID: String?, testMode: Bool) -> GoogleAdPlacement? {
-        if testMode { return GoogleDemoAds.placement(for: type, packagedAppID: packagedAppID) }
-        guard packagedAppID != GoogleDemoAds.appID else { return nil }
-        let matches = (adList ?? []).filter {
-            $0.adType == type && $0.advertiser?.lowercased() == "google"
-        }
-        guard matches.count == 1, let unit = matches.first,
-              let appID = unit.config.appId?.nilIfBlank,
-              let unitID = unit.config.adUnitId?.nilIfBlank,
-              appID == packagedAppID,
-              appID.range(of: #"^ca-app-pub-[0-9]{16}~[0-9]{10}$"#, options: .regularExpression) != nil,
-              unitID.range(of: #"^ca-app-pub-[0-9]{16}/[0-9]{10}$"#, options: .regularExpression) != nil,
-              appID.split(separator: "~").first == unitID.split(separator: "/").first else { return nil }
-        return GoogleAdPlacement(appID: appID, unitID: unitID, isOfficialDemo: false)
     }
 }
 
@@ -344,7 +342,7 @@ enum KStepError: LocalizedError {
     case configuration, invalidResponse, unauthorized, service(String), storage, unsupportedMedia
     var errorDescription: String? {
         switch self {
-        case .configuration: return "KStep’s online service is not configured yet. Local editing is available."
+        case .configuration: return "The online service is not configured yet. Local editing is available."
         case .invalidResponse: return "The service returned an unreadable response. Please try again."
         case .unauthorized: return "Your session has expired. Please sign in again."
         case .service(let message): return message
@@ -357,7 +355,7 @@ enum KStepError: LocalizedError {
         switch error.code {
         case .secureConnectionFailed, .serverCertificateHasBadDate, .serverCertificateUntrusted,
              .serverCertificateHasUnknownRoot, .serverCertificateNotYetValid:
-            return KStepError.service("A secure connection to KStep could not be established. Check your network or VPN, then try again. If it continues, the service may be temporarily unavailable.")
+            return KStepError.service("Couldn’t connect securely. Check your network or VPN, then try again. If it continues, the service may be temporarily unavailable.")
         case .notConnectedToInternet, .networkConnectionLost:
             return KStepError.service("Your internet connection was interrupted. Reconnect and try again.")
         case .timedOut:

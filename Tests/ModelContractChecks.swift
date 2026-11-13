@@ -57,6 +57,16 @@ enum ModelContractChecks {
         precondition(!AppOpenTiming.isDue(intervalMinutes: -1, lastShown: nil, now: now))
         precondition(!AppOpenTiming.isDue(intervalMinutes: .infinity, lastShown: nil, now: now))
         precondition(!AppOpenTiming.isDue(intervalMinutes: 1, lastShown: now.addingTimeInterval(60), now: now))
+        // A failed getV2 request leaves release nil. Only the official test build can still select a unit.
+        let demoAppID = GoogleDemoAds.appID
+        let demoOpen = GoogleAdPlacement.resolve(for: 1, release: nil, packagedAppID: demoAppID, testMode: true)
+        let demoRewarded = GoogleAdPlacement.resolve(for: 5, release: nil, packagedAppID: demoAppID, testMode: true)
+        precondition(demoOpen?.unitID == GoogleDemoAds.appOpenUnitID && demoOpen?.isOfficialDemo == true)
+        precondition(demoRewarded?.unitID == GoogleDemoAds.rewardedUnitID && demoRewarded?.isOfficialDemo == true)
+        precondition(GoogleAdPlacement.resolve(for: 1, release: nil, packagedAppID: demoAppID, testMode: false) == nil)
+        let productionAppID = "ca-app-pub-1111111111111111~2222222222"
+        precondition(GoogleAdPlacement.resolve(for: 1, release: nil, packagedAppID: productionAppID, testMode: true) == nil)
+        precondition(GoogleAdPlacement.resolve(for: 1, release: nil, packagedAppID: productionAppID, testMode: false) == nil)
         // Optional billing configuration must not send an empty verification key.
         for json in [#"{}"#, #"{"iosVerifyShareKey":null}"#, #"{"iosVerifyShareKey":"  "}"#] {
             let billing = try decoder.decode(IOSBillingConfiguration.self, from: Data(json.utf8))
@@ -72,6 +82,6 @@ enum ModelContractChecks {
         let restoredBilling = try decoder.decode(IOSBillingConfiguration.self, from: JSONEncoder().encode(originalBilling))
         precondition(restoredBilling.verificationFields["iosVerifyShareKey"] as? String == "test-verification-key")
         precondition(restoredBilling.verificationFields["sandBoxTest"] as? Bool == true)
-        print("PASS: media fields, folders, URL schemes, entitlement timestamps, app-open interval boundaries and optional billing configuration")
+        print("PASS: media fields, folders, URL schemes, entitlements, ad placements, app-open timing and billing configuration")
     }
 }

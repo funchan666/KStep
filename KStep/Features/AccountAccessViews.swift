@@ -293,28 +293,29 @@ struct AccountSettingsSection: View {
     private var unavailable: Bool { accountAccess.isBusy || commerce.busy || commerce.preparingPurchase || ads.busy || ads.isPreparingAppOpen || ads.isPresenting }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            Button { languagePicker = true } label: {
-                AccountMenuRow(title: "App language", detail: AppLanguage(rawValue: languageCode)?.nativeName ?? "Follow system")
-            }.buttonStyle(PressStyle())
-                .background(KStepStyle.surface, in: RoundedRectangle(cornerRadius: 22))
-                .accessibilityIdentifier("account.language")
-            VStack(alignment: .leading, spacing: 12) {
-                LocalizedText("Privacy & terms").font(.stage(.headline))
-                VStack(spacing: 0) {
+        VStack(alignment: .leading, spacing: 12) {
+            LocalizedText("Settings").font(.stage(.headline))
+                .accessibilityAddTraits(.isHeader)
+            VStack(spacing: 0) {
+                Button { languagePicker = true } label: {
+                    AccountMenuRow(title: "App language",
+                                   detail: AppLanguage(rawValue: languageCode)?.nativeName ?? "Follow system")
+                }.accessibilityIdentifier("account.language")
+                Group {
                     if let url = api.configuration.privacyURL {
+                        rowDivider
                         Button { document = PolicyDocument(title: "Privacy Policy", url: url) } label: {
                             AccountMenuRow(title: "Privacy Policy")
                         }
                     }
                     if let url = api.configuration.termsURL {
-                        if api.configuration.privacyURL != nil { rowDivider }
+                        rowDivider
                         Button { document = PolicyDocument(title: "Terms of Use", url: url) } label: {
                             AccountMenuRow(title: "Terms of Use")
                         }
                     }
                     if let website = api.configuration.websiteURL {
-                        if api.configuration.privacyURL != nil || api.configuration.termsURL != nil { rowDivider }
+                        rowDivider
                         Button {
                             websiteError = nil
                             openURL(website) { accepted in
@@ -330,9 +331,10 @@ struct AccountSettingsSection: View {
                             AccountMenuRow(title: "Advertising privacy")
                         }
                     }
-                }.background(KStepStyle.surface, in: RoundedRectangle(cornerRadius: 22))
-                    .buttonStyle(PressStyle()).disabled(unavailable)
+                }.disabled(unavailable)
             }
+            .buttonStyle(PressStyle())
+            .background(KStepStyle.surface, in: RoundedRectangle(cornerRadius: 16))
             if let websiteError { ErrorNote(message: websiteError) }
             if let error = ads.error { ErrorNote(message: error) }
         }

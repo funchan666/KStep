@@ -100,6 +100,7 @@ struct DiscoverView: View {
     @Environment(\.dismiss) private var dismiss
     private let canDismiss: Bool
     private let onExit: (() -> Void)?
+    private let onOpenLesson: (() -> Void)?
     private let onSearchResult: ((String, LessonClip) -> Void)?
     @EnvironmentObject private var offline: OfflineStore
     private var displayEntries: [PlaybackQueueEntry] {
@@ -112,43 +113,24 @@ struct DiscoverView: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var search = ""
     @State private var visible = false
+    @State private var initialLoadFinished = false
     @State private var activeID: String?
     @State private var recordedQuery: String?
     @State private var openedBrowserSearchID: UUID?
     @State private var browserSearch: PolicyDocument?
     init(initialSearch: String = "", canDismiss: Bool = false, onExit: (() -> Void)? = nil,
+         onOpenLesson: (() -> Void)? = nil,
          onSearchResult: ((String, LessonClip) -> Void)? = nil) {
         self.canDismiss = canDismiss
         self.onExit = onExit
+        self.onOpenLesson = onOpenLesson
         self.onSearchResult = onSearchResult
         _search = State(initialValue: initialSearch)
     }
     var body: some View {
         ZStack(alignment: .top) {
-            if api.session == nil {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 24) {
-                        StageArtwork(kind: .lesson, height: 208)
-                        LocalizedText("Connecting your lesson feed…")
-                            .font(.stage(.subheadline)).foregroundStyle(KStepStyle.secondary)
-                        ConnectionPanel()
-                    }.kstepPage()
-                }
-            } else if feed.clips.isEmpty {
-                VStack(spacing: 0) {
-                    feedHeader
-                    ScrollView {
-                        VStack(spacing: 24) {
-                            StageArtwork(kind: .lesson, height: 208)
-                            MessagePanel(title: feed.loading ? "Finding your next lesson…" : "Your next session starts here.",
-                                         message: feed.error ?? (feed.loading ? "Loading your lesson feed." : feed.emptySearch != nil ? "No matching lessons. Search the web with your original input." : "No lessons are available here yet. Try another search or open a shared lesson link on Home."),
-                                         actionTitle: feed.loading ? nil : feed.emptySearch != nil ? "Search in browser" : "Try again") {
-                                if let request = feed.emptySearch { openBrowserSearch(request) }
-                                else { Task { await feed.load(api: api, search: search) } }
-                            }
-                        }.kstepPage()
-                    }
-                }
+            if api.session == nil || feed.clips.isEmpty {
+                lessonState
             } else {
                 GeometryReader { container in
                     GeometryReader { geometry in
@@ -186,7 +168,7 @@ struct DiscoverView: View {
             if api.session != nil, !feed.clips.isEmpty {
                 feedHeader
             }
-        }.kstepScreenBackground(.black)
+        }.kstepScreenBackground(feed.clips.isEmpty || api.session == nil ? KStepStyle.background : .black)
             .modifier(PlayerPagingAccess(entries: displayEntries, selectedID: $activeID, tailID: morePageID, players: players))
             .overlay(alignment: .top) { DownloadCompletionNotice().padding(.top, 56) }
             .onChange(of: library.downloadsRequest) { _, request in
@@ -194,9 +176,11 @@ struct DiscoverView: View {
             }
             .onAppear { visible = true; players.update(entries: displayEntries, selectedID: activeID) }
             .task(id: api.session?.userId.value) {
+                initialLoadFinished = false
                 guard api.session != nil else { return }
                 await feed.load(api: api, search: search)
                 guard !Task.isCancelled else { return }
+                initialLoadFinished = true
                 activeID = feed.entries.first?.id
             }
             .onChange(of: activeID) { _, id in
@@ -226,6 +210,99 @@ struct DiscoverView: View {
             }
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.didReceiveMemoryWarningNotification)) { _ in players.trimMemory() }
     }
+
+    private var lessonState: some View {
+        GeometryReader { viewport in
+            let photoHeight = min(max(136, viewport.size.height * 0.56), 420)
+            StageScrollView { topInset in
+                VStack(spacing: 0) {
+                    StagePhotoHeader(artwork: "DiscoverStudio", height: photoHeight, topInset: topInset) {
+                        KStepIllustration(name: "DiscoverFilm", height: 84)
+                    }
+                    .overlay(alignment: .top) {
+                        if canDismiss {
+                            PlayerExitButton(action: exitPlayer)
+                                .frame(maxWidth: .infinity, alignment: .trailing)
+                                .stageColumn().padding(.top, topInset + 8)
+                        }
+                    }
+                    Group {
+                        if api.session == nil { ConnectionPanel() }
+                        else { lessonStatus }
+                    }
+                    .frame(maxWidth: 352)
+                    .kstepPage(top: 12)
+                }
+            }
+            .scrollBounceBehavior(.basedOnSize)
+        }
+    }
+
+    private var lessonStatus: some View {
+        VStack(spacing: 20) {
+            if feed.loading || !initialLoadFinished {
+                ProgressView().tint(KStepStyle.accent).accessibilityHidden(true)
+                LocalizedText("Finding your next lesson…")
+                    .font(.stage(.subheadline, weight: .semibold))
+                    .foregroundStyle(KStepStyle.paper)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else if let error = feed.error {
+                lessonMessage("Couldn’t load lessons", detail: error)
+                lessonAction("Try again", action: reloadLessons)
+            } else if let request = feed.emptySearch {
+                lessonMessage("No matching lessons", detail: "Search the web with what you entered.")
+                lessonAction("Search in browser", glyph: .search) { openBrowserSearch(request) }
+            } else {
+                lessonMessage("No lessons yet", detail: "Paste a shared lesson link or short code to start practicing.")
+                if let onOpenLesson {
+                    VStack(spacing: 4) {
+                        lessonAction("Open a lesson", glyph: .link, action: onOpenLesson)
+                        Button(action: reloadLessons) {
+                            LocalizedText("Refresh").font(.stage(.footnote, weight: .semibold))
+                                .foregroundStyle(KStepStyle.secondary)
+                                .padding(.horizontal, 12).frame(minWidth: 44, minHeight: 44)
+                                .contentShape(Rectangle())
+                        }.buttonStyle(PressStyle())
+                    }
+                } else {
+                    lessonAction("Refresh", action: reloadLessons)
+                }
+            }
+        }.multilineTextAlignment(.center).frame(maxWidth: .infinity)
+    }
+
+    private func lessonMessage(_ title: String, detail: String) -> some View {
+        VStack(spacing: 8) {
+            LocalizedText(title).font(.stage(.largeTitle, display: true))
+                .foregroundStyle(KStepStyle.paper)
+                .accessibilityAddTraits(.isHeader)
+            LocalizedText(detail).font(.stage(.subheadline)).foregroundStyle(KStepStyle.secondary)
+                .lineSpacing(3)
+        }.fixedSize(horizontal: false, vertical: true)
+    }
+
+    private func lessonAction(_ title: String, glyph: KStepGlyph? = nil, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                if let glyph { Glyph(symbol: glyph, size: 18, tint: KStepStyle.accent) }
+                LocalizedText(title).font(.stage(.subheadline, weight: .semibold))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .foregroundStyle(KStepStyle.paper)
+            .padding(.horizontal, 20).padding(.vertical, 10)
+            .frame(minWidth: 44, minHeight: 50)
+            .stageGlass(Capsule(), interactive: true)
+            .contentShape(Capsule())
+        }.buttonStyle(PressStyle())
+    }
+
+    private func reloadLessons() {
+        Task {
+            guard visible, !feed.loading, api.session != nil else { return }
+            await feed.load(api: api, search: search)
+        }
+    }
+
     private func openPendingBrowserSearch() {
         guard visible, scenePhase == .active, let request = feed.emptySearch,
               openedBrowserSearchID != request.id else { return }

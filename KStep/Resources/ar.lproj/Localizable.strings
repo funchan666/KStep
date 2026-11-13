@@ -20,7 +20,7 @@
 "A little knowledge for your next session." = "معرفة بسيطة لتدريبك القادم.";
 "A little luck, on us" = "مكافأة صغيرة منا";
 "A right-handed player's backhand is usually struck on the left side of the body, slightly in front. A left-handed player reverses the sides. Give yourself room instead of letting the ball arrive too close." = "يضرب اللاعب الأيمن الضربة الخلفية عادةً إلى يسار جسمه وأمامه قليلًا، والعكس للأعسر. اترك مساحة حتى لا تقترب الكرة من جسمك كثيرًا.";
-"A secure connection to KStep could not be established. Check your network or VPN, then try again. If it continues, the service may be temporarily unavailable." = "تعذر إنشاء اتصال آمن بـ KStep. تحقق من الشبكة أو VPN ثم أعد المحاولة. إذا استمرت المشكلة فقد تكون الخدمة غير متاحة مؤقتًا.";
+"Couldn’t connect securely. Check your network or VPN, then try again. If it continues, the service may be temporarily unavailable." = "تعذّر إنشاء اتصال آمن. تحقق من الشبكة أو VPN ثم حاول مجددًا. إذا استمرت المشكلة، فقد تكون الخدمة غير متاحة مؤقتًا.";
 "A serve starts with the toss." = "الإرسال يبدأ برمي الكرة.";
 "A short guide to following the score." = "دليل مختصر لفهم النتيجة.";
 "Access password" = "كلمة مرور الوصول";
@@ -70,8 +70,7 @@
 "Choose your language" = "اختر لغتك";
 "Choose your practice footage in Tools to keep a local working copy." = "اختر فيديو تدريبك في الأدوات للاحتفاظ بنسخة عمل على الجهاز.";
 "Clear" = "مسح";
-"KStep is starting" = "جارٍ بدء KStep";
-"KStep’s online service is not configured yet. Local editing is available." = "لم تُهيَّأ خدمة KStep عبر الإنترنت بعد. التحرير المحلي متاح.";
+"The online service is not configured yet. Local editing is available." = "لم تُهيّأ الخدمة عبر الإنترنت بعد. يمكنك تعديل الملفات على جهازك.";
 "Close" = "إغلاق";
 "Confirming your purchase…" = "جارٍ تأكيد الشراء…";
 "Connecting your lesson feed…" = "جارٍ الاتصال بقائمة الدروس…";
@@ -141,6 +140,7 @@
 "If a payment is waiting to be confirmed, retry without purchasing again." = "إذا كان الدفع بانتظار التأكيد، فأعد محاولة التأكيد دون الشراء مجددًا.";
 "If the server has won two points and the receiver one, the score is 30–15." = "إذا فاز المرسل بنقطتين والمستقبل بنقطة، فالنتيجة 30–15.";
 "Imported video" = "فيديو مستورد";
+"Video" = "فيديو";
 "Importing…" = "جارٍ الاستيراد…";
 "Imports" = "الملفات المستوردة";
 "In standard advantage scoring, zero is called love. The next points are 15, 30 and 40. A player wins a game with at least four points and a lead of two. The server's score is announced first." = "في نظام الأفضلية المعتاد، يُسمّى الصفر «لوف»، ثم تأتي 15 و30 و40. للفوز بالشوط يلزم أربع نقاط على الأقل وفارق نقطتين. تُذكر نتيجة المرسل أولًا.";
@@ -284,7 +284,7 @@
 "Test ads require Google's sample iOS App ID." = "تتطلب الإعلانات التجريبية معرّف تطبيق iOS التجريبي من Google.";
 "The Championships are held at the All England Club. Wimbledon is the only one of the four majors still played on grass." = "تُقام ويمبلدون في نادي عموم إنجلترا، وهي الوحيدة بين البطولات الأربع التي ما زالت تُلعب على العشب.";
 "The ad finished, but its reward could not be saved. %@" = "اكتمل الإعلان، لكن تعذر حفظ المكافأة. %@";
-"The copy in KStep will be removed. The original in Photos or Files will stay untouched." = "ستُحذف النسخة الموجودة في KStep. سيبقى الأصل في الصور أو الملفات دون تغيير.";
+"This removes the library copy. Your original stays in Photos or Files." = "ستُحذف النسخة الموجودة في المكتبة. سيبقى الفيديو الأصلي في الصور أو الملفات.";
 "The direction of the racket face at contact strongly affects where the ball goes. Begin with a comfortable swing and aim to keep the ball in play. Add pace and spin as your contact becomes more reliable." = "يؤثر اتجاه وجه المضرب عند ملامسة الكرة كثيرًا في مسارها. ابدأ بحركة مريحة وحافظ على الكرة في اللعب، ثم أضف السرعة والدوران عندما يصبح الضرب أكثر ثباتًا.";
 "The document was interrupted. Please try again." = "انقطع تحميل المستند. أعد المحاولة.";
 "The export finished but could not be added to your library. %@" = "اكتمل التصدير، لكن تعذرت إضافته إلى المكتبة. %@";
@@ -473,7 +473,6 @@
 "Download could not be saved. Please try again. (%@)" = "تعذر حفظ التنزيل. حاول مرة أخرى. (%@)";
 "Loading ad…" = "جارٍ تحميل الإعلان…";
 "Exporting…" = "جارٍ التصدير…";
-"This stream can be watched offline in KStep but cannot be exported." = "يمكن مشاهدة هذا الفيديو دون اتصال في KStep، لكن لا يمكن تصديره.";
 
 "Finish downloading this video to export it." = "أكمل تنزيل هذا الفيديو لتصديره.";
 
@@ -522,12 +521,8 @@
 "Finish this ad for unlimited downloads today." = "أكمل هذا الإعلان لتنزيلات غير محدودة اليوم.";
 "Connect to refresh your allowance." = "اتصل بالإنترنت لتحديث حصتك.";
 
-"KStep link or lesson code" = "رابط KStep أو رمز الدرس";
 "Paste" = "لصق";
 "Open lesson" = "فتح الدرس";
-"Use a lesson link or code shared through KStep." = "استخدم رابط درس أو رمزًا تمت مشاركته عبر KStep.";
-"Copy a KStep link or lesson code first, then tap Paste." = "انسخ رابط KStep أو رمز الدرس أولًا، ثم اضغط على لصق.";
-"1. Copy a KStep link" = "1. انسخ رابط KStep";
 "Tap Paste or enter the lesson code exactly as received. Codes are case-sensitive." = "اضغط على لصق أو أدخل رمز الدرس كما وصلك تمامًا. الرموز حساسة لحالة الأحرف.";
 "Tap Open lesson to find matching lessons, then swipe to watch." = "اضغط على فتح الدرس للعثور على الدروس المطابقة، ثم اسحب للمشاهدة.";
 
@@ -535,14 +530,20 @@
 "The browser could not open. Please try again." = "تعذر فتح المتصفح. يرجى المحاولة مجددًا.";
 "Connect to verify your Plus membership before exporting." = "اتصل بالإنترنت للتحقق من عضوية Plus قبل التصدير.";
 "Export is included with Plus." = "التصدير متاح ضمن عضوية Plus.";
-"Unlimited views, downloads and media exports." = "مشاهدات وتنزيلات وتصدير وسائط بلا حدود.";
-"No matching lessons. Search the web with your original input." = "لا توجد دروس مطابقة. ابحث في الويب باستخدام النص الذي أدخلته.";
+"Included with Plus" = "مزايا Plus";
+"Unlimited lesson views" = "مشاهدة الدروس بلا حدود";
+"Unlimited offline downloads" = "تنزيلات غير محدودة للمشاهدة دون اتصال";
+"No ads on launch" = "بدون إعلانات عند فتح التطبيق";
+"Export edited videos as MP4" = "تصدير مقاطع الفيديو المعدّلة بصيغة MP4";
 
 "Official website" = "الموقع الرسمي";
 
 "Subscribe" = "اشترك";
 
 "Billed every %@" = "تُحصّل الرسوم كل %@";
+"Choose a plan" = "اختر خطة";
+"Billed monthly" = "الدفع شهريًا";
+"Billed yearly" = "الدفع سنويًا";
 
 "Apple updated this plan. Review the price and billing period, then continue." = "حدّثت Apple هذه الخطة. راجع السعر وفترة الفوترة ثم تابع.";
 
@@ -555,3 +556,53 @@
 "The distribution package does not exist" = "لم يتم العثور على إعدادات توزيع التطبيق.";
 "Web search" = "بحث الويب";
 "Opening page…" = "جارٍ فتح الصفحة…";
+
+"Rehearsal library" = "مكتبة التمارين";
+"Rehearsal pass" = "عضوية التدريب";
+
+/* Home and practice shortcuts */
+"Learn the chorus one eight-count at a time." = "تعلّم حركات اللازمة، ثماني عدّات في كل مرة.";
+"Practice room" = "غرفة التدريب";
+"Couldn’t load lesson collections" = "تعذّر تحميل مجموعات الدروس";
+"Find a lesson" = "ابحث عن درس";
+"Unlimited lesson views today" = "مشاهدات الدروس اليوم بلا حد";
+"Couldn’t check remaining views" = "تعذّر التحقق من المشاهدات المتبقية";
+"Checking remaining views…" = "جارٍ التحقق من المشاهدات المتبقية…";
+"%@ lesson view left today" = "مشاهدات الدروس المتبقية اليوم: %@";
+"%@ lesson views left today" = "مشاهدات الدروس المتبقية اليوم: %@";
+"Link & code help" = "مساعدة بشأن الروابط والرموز";
+"Copy a lesson link or code, then tap Paste." = "انسخ رابط الدرس أو رمزه، ثم اضغط على «لصق».";
+"Couldn’t open the lesson" = "تعذّر فتح الدرس";
+"Browse lessons" = "تصفّح الدروس";
+"Review video" = "راجع الفيديو";
+"Lesson links and codes" = "روابط الدروس ورموزها";
+"Paste a link or enter a code" = "ألصق رابطًا أو أدخل رمزًا";
+"Enter the code exactly as shared, including capital letters." = "أدخل الرمز كما وصلك، مع مراعاة حالة الأحرف.";
+"Rehearsal log" = "سجلّ التمارين";
+"Track each run by section and eight-count." = "سجّل كل محاولة حسب المقطع ومجموعة العدّات الثماني.";
+"Dance notes" = "ملاحظات الرقص";
+"5, 6, 7, 8!" = "⁦٥، ٦، ٧، ٨!⁩";
+
+"Rehearsal" = "بروفة";
+"Eight-count" = "ثماني عدّات";
+"Practice speed" = "سرعة التدريب";
+"Open a dance lesson" = "فتح درس رقص";
+"Choreo collections" = "مجموعات الرقصات";
+
+/* Stage screens */
+"Continue to app" = "الدخول إلى التطبيق";
+"No lessons yet" = "لا توجد دروس بعد";
+"Couldn’t load lessons" = "تعذّر تحميل الدروس";
+"No matching lessons" = "لا توجد دروس مطابقة";
+"Search the web with what you entered." = "ابحث في الويب باستخدام ما أدخلته.";
+"Paste a shared lesson link or short code to start practicing." = "الصق رابط درس تمت مشاركته معك أو رمزًا مختصرًا لبدء التمرين.";
+"My studio" = "استوديو التدريب";
+"Explore Plus" = "تعرّف على Plus";
+"Lesson views" = "مشاهدات الدروس";
+"Checking today’s allowance…" = "جارٍ التحقق من حصة اليوم…";
+"Settings" = "الإعدادات";
+"Remaining today" = "المتبقي اليوم";
+"Film and review" = "صوّر وراجع";
+"Review my dance video" = "راجع فيديو رقصك";
+"Slow down a tricky eight-count." = "أبطئ مقطعًا صعبًا من ثماني عدّات.";
+"Crop, rotate or mirror your dance video." = "اقتصّ فيديو الرقص أو دوّره أو اعكسه أفقيًا.";

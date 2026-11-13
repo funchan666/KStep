@@ -99,9 +99,8 @@ struct DanceGuideEntry: View {
     let open: () -> Void
     var body: some View {
         Button(action: open) {
-            HStack(spacing: 18) {
-                GuideArtwork(subject: .counts).frame(width: compact ? 72 : 94, height: compact ? 88 : 116)
-                VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 5) {
                     LocalizedText("Dance notes").font(.stage(.headline))
                         .foregroundStyle(KStepStyle.paper)
                     LocalizedText("\(DanceNote.all.count) short reads · Available offline")
@@ -110,8 +109,8 @@ struct DanceGuideEntry: View {
                 Spacer(minLength: 0)
                 Glyph(symbol: .back, size: 14, tint: KStepStyle.accent)
                     .rotationEffect(.degrees(180)).frame(width: 20)
-            }.padding(16).frame(maxWidth: .infinity, alignment: .leading)
-                .background { StageSurface(tone: .plum) }
+            }.padding(.vertical, compact ? 10 : 14).frame(maxWidth: .infinity, minHeight: 52, alignment: .leading)
+                .overlay(alignment: .top) { Divider().overlay(KStepStyle.line).allowsHitTesting(false) }
                 .contentShape(Rectangle())
         }.buttonStyle(PressStyle()).accessibilityIdentifier("danceGuide.open")
     }

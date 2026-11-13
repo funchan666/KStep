@@ -20,7 +20,7 @@
 "A little knowledge for your next session." = "Um pouco de conhecimento para o próximo treino.";
 "A little luck, on us" = "Um pequeno bônus para você";
 "A right-handed player's backhand is usually struck on the left side of the body, slightly in front. A left-handed player reverses the sides. Give yourself room instead of letting the ball arrive too close." = "No backhand de um destro, o contato costuma ser à esquerda do corpo e um pouco à frente. Canhotos invertem os lados. Dê espaço para a bola não chegar perto demais do corpo.";
-"A secure connection to KStep could not be established. Check your network or VPN, then try again. If it continues, the service may be temporarily unavailable." = "Não foi possível estabelecer uma conexão segura com o KStep. Confira a rede ou VPN e tente novamente. Se persistir, o serviço pode estar temporariamente indisponível.";
+"Couldn’t connect securely. Check your network or VPN, then try again. If it continues, the service may be temporarily unavailable." = "Não foi possível estabelecer uma conexão segura. Confira a rede ou VPN e tente novamente. Se persistir, o serviço pode estar temporariamente indisponível.";
 "A serve starts with the toss." = "O saque começa no lançamento.";
 "A short guide to following the score." = "Um guia rápido para acompanhar o placar.";
 "Access password" = "Senha de acesso";
@@ -70,8 +70,7 @@
 "Choose your language" = "Escolha seu idioma";
 "Choose your practice footage in Tools to keep a local working copy." = "Escolha seu vídeo de treino em Ferramentas para manter uma cópia local de trabalho.";
 "Clear" = "Limpar";
-"KStep is starting" = "Iniciando o KStep";
-"KStep’s online service is not configured yet. Local editing is available." = "O serviço online do KStep ainda não está configurado. A edição local está disponível.";
+"The online service is not configured yet. Local editing is available." = "O serviço online ainda não está configurado. Você pode editar arquivos locais.";
 "Close" = "Fechar";
 "Confirming your purchase…" = "Confirmando sua compra…";
 "Connecting your lesson feed…" = "Conectando seu feed de aulas…";
@@ -141,6 +140,7 @@
 "If a payment is waiting to be confirmed, retry without purchasing again." = "Se um pagamento aguarda confirmação, tente confirmar sem comprar novamente.";
 "If the server has won two points and the receiver one, the score is 30–15." = "Se quem saca ganhou dois pontos e quem recebe um, o placar é 30–15.";
 "Imported video" = "Vídeo importado";
+"Video" = "Vídeo";
 "Importing…" = "Importando…";
 "Imports" = "Importações";
 "In standard advantage scoring, zero is called love. The next points are 15, 30 and 40. A player wins a game with at least four points and a lead of two. The server's score is announced first." = "Na contagem tradicional, zero é love, seguido de 15, 30 e 40. Para vencer um game, é preciso pelo menos quatro pontos e dois de vantagem. O placar de quem saca é anunciado primeiro.";
@@ -284,7 +284,7 @@
 "Test ads require Google's sample iOS App ID." = "Anúncios de teste exigem o ID de app iOS de exemplo do Google.";
 "The Championships are held at the All England Club. Wimbledon is the only one of the four majors still played on grass." = "Wimbledon é disputado no All England Club. É o único dos quatro majors ainda realizado na grama.";
 "The ad finished, but its reward could not be saved. %@" = "O anúncio terminou, mas a recompensa não pôde ser salva. %@";
-"The copy in KStep will be removed. The original in Photos or Files will stay untouched." = "A cópia no KStep será removida. O original em Fotos ou Arquivos será preservado.";
+"This removes the library copy. Your original stays in Photos or Files." = "A cópia da biblioteca será removida. O original continuará em Fotos ou Arquivos.";
 "The direction of the racket face at contact strongly affects where the ball goes. Begin with a comfortable swing and aim to keep the ball in play. Add pace and spin as your contact becomes more reliable." = "A direção da face da raquete no contato influencia muito o rumo da bola. Comece com um movimento confortável, mantendo a bola em jogo. Adicione velocidade e efeito quando o contato ficar consistente.";
 "The document was interrupted. Please try again." = "O documento foi interrompido. Tente novamente.";
 "The export finished but could not be added to your library. %@" = "A exportação terminou, mas não pôde ser adicionada à biblioteca. %@";
@@ -473,7 +473,6 @@
 "Download could not be saved. Please try again. (%@)" = "Não foi possível salvar o download. Tente novamente. (%@)";
 "Loading ad…" = "Carregando anúncio…";
 "Exporting…" = "Exportando…";
-"This stream can be watched offline in KStep but cannot be exported." = "Este vídeo pode ser visto offline no KStep, mas não pode ser exportado.";
 
 "Finish downloading this video to export it." = "Conclua o download deste vídeo para exportá-lo.";
 
@@ -522,12 +521,8 @@
 "Finish this ad for unlimited downloads today." = "Assista a este anúncio até o fim para ter downloads ilimitados hoje.";
 "Connect to refresh your allowance." = "Conecte-se para atualizar sua cota.";
 
-"KStep link or lesson code" = "Link do KStep ou código da aula";
 "Paste" = "Colar";
 "Open lesson" = "Abrir aula";
-"Use a lesson link or code shared through KStep." = "Use um link ou código de aula compartilhado pelo KStep.";
-"Copy a KStep link or lesson code first, then tap Paste." = "Copie um link do KStep ou código de aula e toque em Colar.";
-"1. Copy a KStep link" = "1. Copie um link do KStep";
 "Tap Paste or enter the lesson code exactly as received. Codes are case-sensitive." = "Toque em Colar ou digite o código da aula exatamente como recebido. Os códigos diferenciam maiúsculas de minúsculas.";
 "Tap Open lesson to find matching lessons, then swipe to watch." = "Toque em Abrir aula para encontrar aulas correspondentes e deslize para assistir.";
 
@@ -535,14 +530,20 @@
 "The browser could not open. Please try again." = "Não foi possível abrir o navegador. Tente novamente.";
 "Connect to verify your Plus membership before exporting." = "Conecte-se à internet para verificar sua assinatura Plus antes de exportar.";
 "Export is included with Plus." = "A exportação está incluída no Plus.";
-"Unlimited views, downloads and media exports." = "Visualizações, downloads e exportações de mídia ilimitados.";
-"No matching lessons. Search the web with your original input." = "Nenhuma aula encontrada. Pesquise na web com o texto que você inseriu.";
+"Included with Plus" = "Incluído no Plus";
+"Unlimited lesson views" = "Visualizações ilimitadas de aulas";
+"Unlimited offline downloads" = "Downloads ilimitados para assistir offline";
+"No ads on launch" = "Sem anúncios ao abrir o app";
+"Export edited videos as MP4" = "Exporte vídeos editados em MP4";
 
 "Official website" = "Site oficial";
 
 "Subscribe" = "Assinar";
 
 "Billed every %@" = "Cobrado a cada %@";
+"Choose a plan" = "Escolha um plano";
+"Billed monthly" = "Cobrança mensal";
+"Billed yearly" = "Cobrança anual";
 
 "Apple updated this plan. Review the price and billing period, then continue." = "A Apple atualizou este plano. Confira o preço e o período de cobrança antes de continuar.";
 
@@ -555,3 +556,53 @@
 "The distribution package does not exist" = "A configuração de distribuição do aplicativo não foi encontrada.";
 "Web search" = "Pesquisa na web";
 "Opening page…" = "Abrindo página…";
+
+"Rehearsal library" = "Biblioteca de ensaios";
+"Rehearsal pass" = "Passe de ensaio";
+
+/* Home and practice shortcuts */
+"Learn the chorus one eight-count at a time." = "Aprenda o refrão em blocos de oito tempos.";
+"Practice room" = "Sala de ensaio";
+"Couldn’t load lesson collections" = "Não foi possível carregar as coleções de aulas";
+"Find a lesson" = "Encontre uma aula";
+"Unlimited lesson views today" = "Visualizações de aulas ilimitadas hoje";
+"Couldn’t check remaining views" = "Não foi possível consultar as visualizações restantes";
+"Checking remaining views…" = "Consultando as visualizações restantes…";
+"%@ lesson view left today" = "Resta %@ visualização de aulas hoje";
+"%@ lesson views left today" = "Restam %@ visualizações de aulas hoje";
+"Link & code help" = "Ajuda com links e códigos";
+"Copy a lesson link or code, then tap Paste." = "Copie um link ou código de aula e toque em Colar.";
+"Couldn’t open the lesson" = "Não foi possível abrir a aula";
+"Browse lessons" = "Explorar aulas";
+"Review video" = "Revisar vídeo";
+"Lesson links and codes" = "Links e códigos de aula";
+"Paste a link or enter a code" = "Cole um link ou digite um código";
+"Enter the code exactly as shared, including capital letters." = "Digite o código como recebeu, respeitando as letras maiúsculas.";
+"Rehearsal log" = "Diário de ensaios";
+"Track each run by section and eight-count." = "Registre cada passagem por trecho e bloco de oito tempos.";
+"Dance notes" = "Notas de dança";
+"5, 6, 7, 8!" = "5, 6, 7, 8!";
+
+"Rehearsal" = "Ensaio";
+"Eight-count" = "Sequência de oito tempos";
+"Practice speed" = "Velocidade do ensaio";
+"Open a dance lesson" = "Abrir aula de dança";
+"Choreo collections" = "Coleções de coreografias";
+
+/* Stage screens */
+"Continue to app" = "Entrar no app";
+"No lessons yet" = "Ainda não há aulas";
+"Couldn’t load lessons" = "Não foi possível carregar as aulas";
+"No matching lessons" = "Nenhuma aula encontrada";
+"Search the web with what you entered." = "Pesquise na web pelo que você digitou.";
+"Paste a shared lesson link or short code to start practicing." = "Cole um link de aula compartilhado ou um código curto para começar a praticar.";
+"My studio" = "Meu estúdio";
+"Explore Plus" = "Conheça o Plus";
+"Lesson views" = "Visualizações de aulas";
+"Checking today’s allowance…" = "Consultando a cota de hoje…";
+"Settings" = "Configurações";
+"Remaining today" = "Restante de hoje";
+"Film and review" = "Grave e revise";
+"Review my dance video" = "Revisar meu vídeo de dança";
+"Slow down a tricky eight-count." = "Desacelere um trecho difícil de oito tempos.";
+"Crop, rotate or mirror your dance video." = "Recorte, gire ou espelhe seu vídeo de dança.";

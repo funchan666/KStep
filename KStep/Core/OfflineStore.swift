@@ -207,7 +207,7 @@ final class OfflineStore: NSObject, ObservableObject {
             progress = 0
             if forExport, isHLS {
                 let destination = root.appendingPathComponent(transfer.id.uuidString).appendingPathExtension("mp4")
-                let task = Task { @MainActor in
+                let task = Task { @MainActor [self] in
                     do {
                         try await LessonStreamExport.Job().convert(source, destination: destination) { [weak self] value in
                             await self?.updateProgress(id: transfer.id, value: value)

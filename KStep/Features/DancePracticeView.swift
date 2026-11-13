@@ -4,21 +4,19 @@ struct DancePracticeEntry: View {
     let openJournal: () -> Void
     var body: some View {
         Button(action: openJournal) {
-            VStack(alignment: .leading, spacing: 10) {
-                LocalizedText("Rehearsal log").font(.stage(.title3, display: true))
-                LocalizedText("Count it, run it, mark it clean.").font(.stage(.subheadline))
-                    .fixedSize(horizontal: false, vertical: true)
-                EightCountRail(highlighted: [1], compact: true).frame(maxWidth: 260, alignment: .leading)
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 5) {
+                    LocalizedText("Rehearsal log").font(.stage(.headline))
+                    LocalizedText("Track each run by section and eight-count.")
+                        .font(.stage(.footnote)).foregroundStyle(KStepStyle.secondary)
+                }.fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 0)
+                Glyph(symbol: .back, size: 14, tint: KStepStyle.accent).rotationEffect(.degrees(180))
             }
             .foregroundStyle(KStepStyle.paper)
-            .padding(20).frame(maxWidth: .infinity, minHeight: 172, alignment: .bottomLeading)
-            .background {
-                ZStack {
-                    KStepStyle.surface
-                    if ArtworkCatalog.has("PracticeHero") { Image("PracticeHero").resizable().scaledToFill() }
-                    LinearGradient(colors: [.clear, KStepStyle.background.opacity(0.8)], startPoint: .top, endPoint: .bottom)
-                }
-            }.clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous)).contentShape(Rectangle())
+            .padding(14).frame(maxWidth: .infinity, minHeight: 54, alignment: .leading)
+            .stageGlass(RoundedRectangle(cornerRadius: 15), interactive: true)
+            .contentShape(Rectangle())
         }.buttonStyle(PressStyle()).accessibilityIdentifier("practice.openJournal")
     }
 }
@@ -28,8 +26,8 @@ struct DancePracticeView: View {
     @Environment(\.locale) private var locale
     @StateObject private var journal = DancePracticeJournal()
     @State private var section = SongSection.chorus
-    @State private var eightCount = 1
-    @State private var tempo = PracticeTempo.threeQuarters
+    @State private var eightCount: Int
+    @State private var tempo: PracticeTempo
     @State private var mirrored = true
     @State private var routine = ""
     @State private var runNote = ""
@@ -39,18 +37,26 @@ struct DancePracticeView: View {
     @State private var sharedExport: SharedFile?
     @FocusState private var routineFocused: Bool
 
+    init(initialEightCount: Int = 1, initialTempo: PracticeTempo = .threeQuarters) {
+        _eightCount = State(initialValue: initialEightCount)
+        _tempo = State(initialValue: initialTempo)
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             SheetHeading(title: "Rehearsal log") { dismiss() }
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    KStepIllustration(name: "PracticeHero", height: 150)
-                    ChoiceStrip(values: ["Practice", "Sessions"], selected: showingHistory ? "Sessions" : "Practice") {
-                        showingHistory = $0 == "Sessions"
+                VStack(spacing: 0) {
+                    StagePhotoHeader(artwork: "ReviewStudio", height: 160) {
+                        ChoiceStrip(values: ["Practice", "Sessions"], selected: showingHistory ? "Sessions" : "Practice") {
+                            showingHistory = $0 == "Sessions"
+                        }.stageColumn().padding(.bottom, 8)
                     }
-                    if let message = journal.storageMessage { ErrorNote(message: message) }
-                    if showingHistory { history } else { practice }
-                }.kstepPage().frame(maxWidth: 660).frame(maxWidth: .infinity)
+                    VStack(alignment: .leading, spacing: 20) {
+                        if let message = journal.storageMessage { ErrorNote(message: message) }
+                        if showingHistory { history } else { practice }
+                    }.kstepPage(top: 12)
+                }
             }.scrollDismissesKeyboard(.interactively)
         }.foregroundStyle(KStepStyle.paper).kstepScreenBackground()
             .sheet(item: $selectedSession) { session in

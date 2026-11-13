@@ -65,35 +65,60 @@ struct GuideArtwork: View {
     }
 }
 
-/// Home hero: native countdown type over the original practice-room artwork.
-struct StageBanner: View {
-    @Environment(\.dynamicTypeSize) private var typeSize
+/// Lets the photo scroll from the screen edge while the controls start below the status area.
+struct StageScrollView<Content: View>: View {
+    @ViewBuilder let content: (CGFloat) -> Content
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Spacer(minLength: 0)
-            LocalizedText("5, 6, 7, 8!")
-                .font(.stage(.largeTitle, display: true))
-                .foregroundStyle(KStepStyle.paper)
-                .minimumScaleFactor(0.7).lineLimit(1)
-            LocalizedText("Learn the point choreo one eight-count at a time.")
-                .font(.stage(.subheadline, weight: .medium)).foregroundStyle(KStepStyle.paper)
-                .fixedSize(horizontal: false, vertical: true)
-            EightCountRail(highlighted: [5, 6, 7, 8], compact: true)
+        GeometryReader { viewport in
+            ScrollView {
+                content(viewport.safeAreaInsets.top)
+            }
+            .ignoresSafeArea(.container, edges: .top)
         }
-        .padding(22).frame(maxWidth: .infinity, minHeight: 250, alignment: .bottomLeading)
-        .background {
+    }
+}
+
+struct StagePhotoHeader<Content: View>: View {
+    let artwork: String
+    let height: CGFloat
+    var topInset: CGFloat = 0
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        content()
+            .frame(maxWidth: .infinity, minHeight: height, alignment: .bottomLeading)
+            .padding(.top, topInset)
+            .foregroundStyle(KStepStyle.paper)
+            .background { StagePhoto(artwork: artwork) }
+    }
+}
+
+struct StagePhoto: View {
+    let artwork: String
+    var imageAlignment: Alignment = .center
+
+    var body: some View {
+        GeometryReader { frame in
             ZStack {
-                KStepStyle.surface
-                if ArtworkCatalog.has("HeroStage") {
-                    Image("HeroStage").resizable().scaledToFill()
+                KStepStyle.background
+                if ArtworkCatalog.has(artwork) {
+                    Image(artwork)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: frame.size.width, height: frame.size.height, alignment: imageAlignment)
+                        .clipped()
                 }
-                // Keeps native text readable over any crop of the artwork.
-                LinearGradient(colors: [.clear, KStepStyle.background.opacity(typeSize.isAccessibilitySize ? 0.92 : 0.78)],
-                               startPoint: .center, endPoint: .bottom)
+                LinearGradient(stops: [
+                    .init(color: KStepStyle.background.opacity(0.56), location: 0),
+                    .init(color: KStepStyle.background.opacity(0.06), location: 0.33),
+                    .init(color: KStepStyle.background.opacity(0.66), location: 0.73),
+                    .init(color: KStepStyle.background, location: 1)
+                ], startPoint: .top, endPoint: .bottom)
             }
         }
-        .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
-        .accessibilityElement(children: .combine)
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 }
 
@@ -311,10 +336,21 @@ extension View {
     func kstepScreenBackground(_ color: Color = KStepStyle.background) -> some View {
         background { color.ignoresSafeArea(.container, edges: .all) }
     }
+    @ViewBuilder
+    func stageGlass(_ shape: some Shape, interactive: Bool = false) -> some View {
+        if #available(iOS 26.0, *) {
+            glassEffect(.regular.tint(KStepStyle.ink.opacity(0.48)).interactive(interactive), in: shape)
+        } else {
+            background(KStepStyle.ink.opacity(0.62), in: shape)
+                .background(.regularMaterial, in: shape)
+        }
+    }
     // A readable column follows the available container (outer or inner display) without resetting state.
-    func kstepPage() -> some View {
-        pageHorizontalMargins().padding(.top, 16).padding(.bottom, 24)
-            .frame(maxWidth: 680).frame(maxWidth: .infinity, alignment: .top)
+    func kstepPage(top: CGFloat = 16) -> some View {
+        stageColumn().padding(.top, top).padding(.bottom, 24)
+    }
+    func stageColumn() -> some View {
+        pageHorizontalMargins().frame(maxWidth: 680).frame(maxWidth: .infinity, alignment: .top)
     }
     @ViewBuilder
     fileprivate func pageHorizontalMargins() -> some View {
@@ -325,6 +361,7 @@ extension View {
         }
     }
 }
+
 struct MediaCover: View {
     let url: URL?
     var folder = false
@@ -458,6 +495,7 @@ struct MatteActionStyle: ButtonStyle {
 struct ChoiceStrip: View {
     let values: [String]
     let selected: String
+    var onGlass = false
     let select: (String) -> Void
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -469,8 +507,14 @@ struct ChoiceStrip: View {
                             .fixedSize(horizontal: true, vertical: false)
                             .padding(.horizontal, 16).padding(.vertical, 10)
                             .frame(minHeight: 44)
-                            .foregroundStyle(selected == value ? KStepStyle.ink : KStepStyle.paper)
-                            .background { StageSurface(tone: selected == value ? .accent : .plum) }
+                            .foregroundStyle(selected == value && !onGlass ? KStepStyle.ink : KStepStyle.paper)
+                            .background {
+                                if onGlass {
+                                    Capsule().fill(selected == value ? KStepStyle.paper.opacity(0.22) : .clear)
+                                } else {
+                                    StageSurface(tone: selected == value ? .accent : .plum)
+                                }
+                            }
                             .contentShape(Rectangle())
                     }.buttonStyle(PressStyle())
                         .accessibilityAddTraits(selected == value ? .isSelected : [])

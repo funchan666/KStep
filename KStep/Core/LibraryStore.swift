@@ -36,6 +36,7 @@ final class LibraryStore: ObservableObject {
         let exportOwner = commerce.api.session?.userId.value
         let source = url(for: movie)
         let title = movie.title
+        let fallbackTitle = L10n.text("Video")
         let task = Task.detached(priority: .userInitiated) {
             let fm = FileManager.default
             let root = fm.temporaryDirectory.appendingPathComponent("KStepSharedVideos", isDirectory: true)
@@ -55,7 +56,7 @@ final class LibraryStore: ObservableObject {
             }
             name = name.trimmingCharacters(in: CharacterSet(charactersIn: ". "))
             while name.utf8.count > 160 { name.removeLast() }
-            if name.isEmpty { name = "KStep video" }
+            if name.isEmpty { name = fallbackTitle }
             let destination = directory.appendingPathComponent(name).appendingPathExtension(source.pathExtension)
             do {
                 try Task.checkCancellation()

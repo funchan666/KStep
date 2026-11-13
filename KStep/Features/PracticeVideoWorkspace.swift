@@ -43,49 +43,62 @@ struct ToolsView: View {
     @State private var selectedTool: VideoTool?
     @State private var showingGuide = false
     @State private var showingPractice = false
-    @Environment(\.dynamicTypeSize) private var typeSize
     private let tools: [VideoTool] = [.speed, .frame, .audio]
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                DancePracticeEntry { showingPractice = true }
-                SectionLabel(title: "Film and review")
-                ViewThatFits(in: .horizontal) {
-                    HStack(spacing: 14) {
-                        GuideArtwork(subject: .review).frame(width: 108, height: 88)
+        StageScrollView { topInset in
+            VStack(spacing: 0) {
+                StagePhotoHeader(artwork: "ReviewStudio", height: 262, topInset: topInset) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        LocalizedText("Film and review")
+                            .font(.stage(.largeTitle, display: true))
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityAddTraits(.isHeader)
                         reviewButton
-                    }
-                    VStack(spacing: 12) {
-                        GuideArtwork(subject: .review).aspectRatio(2.2, contentMode: .fit)
-                        reviewButton
-                    }
+                    }.stageColumn().padding(.top, 98).padding(.bottom, 12)
                 }
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: typeSize.isAccessibilitySize ? 240 : 96), spacing: 8)], spacing: 8) {
-                    ForEach(tools) { tool in
-                        Button { selectedTool = tool } label: {
-                            HStack(spacing: 6) {
-                                Glyph(symbol: tool.glyph, size: 16, tint: KStepStyle.accent)
-                                LocalizedText(tool.editorTab).font(.stage(.footnote, weight: .bold))
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }.padding(8).frame(maxWidth: .infinity, minHeight: 48)
-                                .foregroundStyle(KStepStyle.paper)
-                                .background { StageSurface(tone: .mist) }
-                                .contentShape(Rectangle())
-                        }.buttonStyle(PressStyle())
-                            .accessibilityLabel(LocalizedStringKey(tool.title))
-                            .accessibilityIdentifier("tools.\(tool.rawValue)")
+                VStack(alignment: .leading, spacing: 20) {
+                    VStack(spacing: 0) {
+                        ForEach(tools) { tool in
+                            Divider().overlay(KStepStyle.line)
+                            toolRow(tool)
+                        }
                     }
-                }
-                DanceGuideEntry { showingGuide = true }
-            }.kstepPage()
+                    DancePracticeEntry { showingPractice = true }
+                    DanceGuideEntry(compact: true) { showingGuide = true }
+                }.kstepPage(top: 0)
+            }
         }.kstepScreenBackground()
             .sheet(item: $selectedTool) { EditorSheet(initialTool: $0) }
             .sheet(isPresented: $showingGuide) { DanceGuideView() }
             .sheet(isPresented: $showingPractice) { DancePracticeView() }
     }
     private var reviewButton: some View {
-        ActionButton(title: "Review my dance video") { selectedTool = .studio }
-            .accessibilityIdentifier("tools.studio")
+        Button { selectedTool = .studio } label: {
+            LocalizedText("Review my dance video")
+                .font(.stage(.subheadline, weight: .bold))
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, 18).padding(.vertical, 10)
+                .frame(minHeight: 48)
+                .foregroundStyle(KStepStyle.ink)
+                .background(KStepStyle.accent, in: Capsule())
+                .contentShape(Capsule())
+        }.buttonStyle(PressStyle()).accessibilityIdentifier("tools.studio")
+    }
+
+    private func toolRow(_ tool: VideoTool) -> some View {
+        Button { selectedTool = tool } label: {
+            HStack(spacing: 14) {
+                Glyph(symbol: tool.glyph, size: 20, tint: KStepStyle.accent)
+                VStack(alignment: .leading, spacing: 4) {
+                    LocalizedText(tool.title).font(.stage(.subheadline, weight: .semibold))
+                        .foregroundStyle(KStepStyle.paper)
+                    LocalizedText(tool.detail).font(.stage(.caption)).foregroundStyle(KStepStyle.secondary)
+                }.fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 4)
+                Glyph(symbol: .back, size: 13, tint: KStepStyle.secondary).rotationEffect(.degrees(180))
+            }.padding(.vertical, 10).frame(minHeight: 52)
+                .contentShape(Rectangle())
+        }.buttonStyle(PressStyle()).accessibilityIdentifier("tools.\(tool.rawValue)")
     }
 }
 

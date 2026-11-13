@@ -1,6 +1,9 @@
 import SwiftUI
+import UIKit
 
 struct HomeView: View {
+    @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var typeSize
     @EnvironmentObject private var api: APIClient
     @EnvironmentObject private var library: LibraryStore
     @EnvironmentObject private var commerce: CommerceStore
@@ -9,9 +12,10 @@ struct HomeView: View {
     var discover: () -> Void
     var openTools: () -> Void
     @Binding var link: String
+    @Binding var revealLinkComposer: Bool
     @State private var error: String?
-    @State private var linkFailure = ""
-    @State private var showingLinkFailure = false
+    @State private var pasteError = false
+    @State private var showingConnectionFailure = false
     @State private var channel: ChannelRoute?
     @State private var searchRequest: LessonSearch?
     @State private var paywall = false
@@ -20,78 +24,58 @@ struct HomeView: View {
     @State private var showingLinkGuide = false
     @State private var showingGuide = false
     @State private var showingPractice = false
+    @State private var composerWidth: CGFloat = 0
+    @SceneStorage("rehearsal.beat") private var beat = 1
+    @SceneStorage("rehearsal.tempo") private var tempo = PracticeTempo.threeQuarters
     @FocusState private var focused: Bool
+    @ScaledMetric(relativeTo: .subheadline) private var minimumInlineWidth: CGFloat = 230
+    private let pasteErrorMessage = "Copy a lesson link or code, then tap Paste."
+
     var body: some View {
         let request = ChannelRequest(links: commerce.release?.lcList?["us"] ?? [], attempt: channelRetry)
-        ScrollView {
-            VStack(alignment: .leading, spacing: 28) {
-                HStack(spacing: 10) {
-                    Text(verbatim: "KStep").font(.stage(.title3, display: true))
-                        .foregroundStyle(KStepStyle.paper).accessibilityAddTraits(.isHeader)
-                    Spacer()
-                    Button(LocalizedStringKey(commerce.premium ? "PLUS" : "Get Plus")) { paywall = true }
-                        .buttonStyle(MatteActionStyle())
-                    IconButton(symbol: .settings, label: "Open Me and account settings", action: openAccount)
-                }
-                StageBanner()
-                linkComposer
-                if let error {
-                    MessagePanel(title: "Couldn’t load lesson collections", message: error, actionTitle: "Try again") {
-                        channelRetry += 1
-                    }
-                }
-                if api.session == nil { ConnectionPanel() }
-                VStack(alignment: .leading, spacing: 12) {
-                    SectionLabel(title: "From the screen to the floor")
-                    DancePracticeEntry { showingPractice = true }
-                    ViewThatFits(in: .horizontal) {
-                        HStack(spacing: 10) { lessonActions }
-                        VStack(spacing: 10) { lessonActions }
-                    }
-                    DanceGuideEntry(compact: true) { showingGuide = true }
-                }
-                recentLinks
-                if !channels.isEmpty {
-                    HStack(spacing: 16) {
-                        VStack(alignment: .leading, spacing: 6) {
-                            LocalizedText("Choreo collections").font(.stage(.headline))
-                            LocalizedText("Pick a song. Learn it section by section.").font(.stage(.caption)).foregroundStyle(KStepStyle.secondary)
-                        }.frame(maxWidth: .infinity, alignment: .leading)
-                        StageArtwork(kind: .notebook, height: 76).frame(width: 114)
-                    }
-                    ForEach(Array(channels.enumerated()), id: \.offset) { _, item in
-                        if let info = item.extraInfo, let title = info.channelName, let short = info.externalLinks {
-                            Button { channel = ChannelRoute(link: short, title: title) } label: {
-                                HStack(spacing: 14) {
-                                    MediaCover(url: WebAddress.media(item.shortCover), folder: false).frame(width: 62, height: 72).clipShape(RoundedRectangle(cornerRadius: 12))
-                                    VStack(alignment: .leading, spacing: 5) {
-                                        Text(verbatim: title).font(.stage(.headline)).lineLimit(2)
-                                        if let count = info.videoFileCount { LocalizedText("\(count) videos").font(.stage(.caption)).foregroundStyle(KStepStyle.secondary) }
-                                    }
-                                    Spacer()
-                                }
-                            }.buttonStyle(PressStyle())
+        ScrollViewReader { scroll in
+            StageScrollView { topInset in
+                VStack(spacing: 0) {
+                    rehearsalHeader(topInset: topInset)
+                    VStack(alignment: .leading, spacing: 22) {
+                        linkComposer.id("lesson-link-composer")
+                        connection
+                        ViewThatFits(in: .horizontal) {
+                            HStack(spacing: 10) { lessonActions }
+                            VStack(spacing: 10) { lessonActions }
                         }
-                    }
-                }
-            }.kstepPage()
-        }.kstepScreenBackground().scrollDismissesKeyboard(.interactively)
-            .dismissKeyboardOnOutsideTap($focused, scope: "home-link-input")
-            .sheet(item: $channel) { ChannelView(route: $0) }
-            .fullScreenCover(item: $searchRequest) { request in
-                DiscoverView(initialSearch: request.query, canDismiss: true) { query, clip in
-                    library.record(link: query, title: clip.title)
+                        choreoCollections
+                        DanceGuideEntry(compact: true) { showingGuide = true }
+                        recentLinks
+                    }.kstepPage(top: 18)
                 }
             }
-            .fullScreenCover(isPresented: $showingLinkFailure) {
-                AccountDecisionDialog(title: "Couldn’t open this link", message: linkFailure,
-                                      confirmTitle: "Back to link", confirm: { showingLinkFailure = false })
+            .scrollDismissesKeyboard(.interactively)
+            .dismissKeyboardOnOutsideTap($focused, scope: "home-link-input")
+            .onChange(of: revealLinkComposer, initial: true) { _, requested in
+                guard requested else { return }
+                scroll.scrollTo("lesson-link-composer")
+                revealLinkComposer = false
+            }
+        }.kstepScreenBackground().foregroundStyle(KStepStyle.paper)
+            .onChange(of: link) { _, _ in pasteError = false }
+            .sheet(item: $channel) { ChannelView(route: $0) }
+            .fullScreenCover(item: $searchRequest) { request in
+                DiscoverView(initialSearch: request.query, canDismiss: true, onSearchResult: { query, clip in
+                    library.record(link: query, title: clip.title)
+                })
+            }
+            .fullScreenCover(isPresented: $showingConnectionFailure) {
+                AccountDecisionDialog(title: "Couldn’t open the lesson", message: "Check your connection and try again.",
+                                      confirmTitle: "Got it") { showingConnectionFailure = false }
                     .presentationBackground(.clear)
             }
             .sheet(isPresented: $paywall) { MembershipView() }
             .sheet(isPresented: $showingLinkGuide) { LinkGuideSheet() }
             .sheet(isPresented: $showingGuide) { DanceGuideView() }
-            .sheet(isPresented: $showingPractice) { DancePracticeView() }
+            .sheet(isPresented: $showingPractice) {
+                DancePracticeView(initialEightCount: beat, initialTempo: tempo)
+            }
             .task(id: request) {
                 guard !Task.isCancelled else { return }
                 channels = []
@@ -105,107 +89,273 @@ struct HomeView: View {
                 }
             }
     }
+
+    private func rehearsalHeader(topInset: CGFloat) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 0) {
+                headerActions
+                Spacer(minLength: 76)
+                LocalizedText("Eight-count")
+                    .font(.stage(.largeTitle, display: true))
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityAddTraits(.isHeader)
+            }.stageColumn().padding(.top, 6).padding(.bottom, 10)
+                .frame(maxWidth: .infinity, minHeight: 222)
+                .padding(.top, topInset)
+            rehearsalFloor.stageColumn()
+        }.background { StagePhoto(artwork: "RehearsalStudio") }
+    }
+
+    private var headerActions: some View {
+        HStack(spacing: 8) {
+            Button { paywall = true } label: {
+                LocalizedText(commerce.premium ? "Plus" : "Get Plus")
+                    .font(.stage(.footnote, weight: .semibold))
+                    .fixedSize(horizontal: false, vertical: true)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 12).padding(.vertical, 6)
+                    .frame(minWidth: 44, minHeight: 44)
+                    .stageGlass(Capsule(), interactive: true)
+                    .contentShape(Capsule())
+            }.buttonStyle(PressStyle())
+            IconButton(symbol: .settings, label: "Open Me and account settings", action: openAccount)
+                .stageGlass(Circle(), interactive: true)
+        }.frame(maxWidth: .infinity, alignment: .trailing)
+    }
+
+    @ViewBuilder private var connection: some View {
+        if api.session == nil { ConnectionPanel() }
+        if let error {
+            MessagePanel(title: "Couldn’t load lesson collections", message: error, actionTitle: "Try again") {
+                channelRetry += 1
+            }
+        }
+    }
+
+    private var rehearsalFloor: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 8) {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 4),
+                                         count: typeSize.isAccessibilitySize ? 2 : 4), spacing: 4) {
+                    ForEach(1...8, id: \.self) { count in
+                        Button { beat = count } label: {
+                            Text(count, format: .number)
+                                .font(.stage(.title3, weight: .semibold)).monospacedDigit()
+                                .frame(maxWidth: .infinity, minHeight: 44)
+                                .foregroundStyle(beat == count ? KStepStyle.ink : KStepStyle.paper)
+                                .background {
+                                    if beat == count {
+                                        RoundedRectangle(cornerRadius: 9).fill(KStepStyle.paper)
+                                    }
+                                }
+                                .contentShape(Rectangle())
+                        }.buttonStyle(PressStyle())
+                            .accessibilityLabel(LocalizedStringKey("Eight-count beat \(count)"))
+                            .accessibilityAddTraits(beat == count ? .isSelected : [])
+                    }
+                }.environment(\.layoutDirection, .leftToRight)
+                Divider().overlay(KStepStyle.line)
+                LocalizedText("Practice speed").font(.stage(.caption, weight: .semibold))
+                    .foregroundStyle(KStepStyle.secondary).padding(.leading, 8)
+                ChoiceStrip(values: PracticeTempo.allCases.map(\.label), selected: tempo.label, onGlass: true) { label in
+                    if let value = PracticeTempo.allCases.first(where: { $0.label == label }) { tempo = value }
+                }
+            }.padding(10).stageGlass(RoundedRectangle(cornerRadius: 18))
+            ActionButton(title: "Rehearsal log") { showingPractice = true }
+                .accessibilityIdentifier("practice.openJournal")
+        }
+    }
+
+    @ViewBuilder private var choreoCollections: some View {
+        if !channels.isEmpty {
+            VStack(alignment: .leading, spacing: 12) {
+                LocalizedText("Choreo collections").font(.stage(.title2, display: true))
+                    .accessibilityAddTraits(.isHeader)
+                ScrollView(.horizontal) {
+                    LazyHStack(alignment: .top, spacing: 12) {
+                        ForEach(channels.indices, id: \.self) { index in
+                            let item = channels[index]
+                            if let info = item.extraInfo, let title = info.channelName, let short = info.externalLinks {
+                                Button { channel = ChannelRoute(link: short, title: title) } label: {
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        MediaCover(url: WebAddress.media(item.shortCover))
+                                            .frame(height: 112).clipShape(.rect(cornerRadius: 10))
+                                            .accessibilityHidden(true)
+                                        Text(verbatim: title).font(.stage(.headline))
+                                            .fixedSize(horizontal: false, vertical: true)
+                                        if let count = info.videoFileCount {
+                                            LocalizedText("\(count) videos").font(.stage(.caption))
+                                                .foregroundStyle(KStepStyle.secondary)
+                                        }
+                                    }.frame(width: typeSize.isAccessibilitySize ? 224 : 156, alignment: .leading)
+                                        .contentShape(Rectangle())
+                                }.buttonStyle(PressStyle())
+                            }
+                        }
+                    }
+                }.scrollIndicators(.hidden)
+            }
+        }
+    }
+
     private var linkComposer: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            HStack(spacing: 10) {
-                Glyph(symbol: .link, size: 20)
-                    .frame(width: 40, height: 40)
-                    .background(KStepStyle.ink, in: RoundedRectangle(cornerRadius: 12))
-                LocalizedText("Open a dance lesson").font(.stage(.headline))
-                    .foregroundStyle(KStepStyle.ink).fixedSize(horizontal: false, vertical: true)
+        // Change the layout without replacing the focused field.
+        let stacksInput = typeSize.isAccessibilitySize || (composerWidth > 0 && composerWidth < minimumInlineWidth)
+        let inputLayout = stacksInput
+            ? AnyLayout(VStackLayout(alignment: .trailing, spacing: 8))
+            : AnyLayout(HStackLayout(spacing: 8))
+        return VStack(alignment: .leading, spacing: 10) {
+            LocalizedText("Find a lesson")
+                .font(.stage(.headline, weight: .bold))
+                .foregroundStyle(KStepStyle.paper)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
+
+            inputLayout {
+                lessonInput
+                pasteButton
             }
-            HStack(spacing: 0) {
-                TextField("KStep link or lesson code", text: $link, axis: .vertical)
-                    .lineLimit(1...3).keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
-                    .focused($focused).font(.stage(.subheadline)).foregroundStyle(KStepStyle.ink)
-                    .tint(KStepStyle.ink)
-                    .padding(.leading, 14).padding(.vertical, 14)
-                    .frame(maxWidth: .infinity)
-                    .accessibilityLabel(LocalizedStringKey("KStep link or lesson code"))
-                if !link.isEmpty {
-                    Button {
-                        link = ""
-                        focused = true
-                    } label: {
-                        Glyph(symbol: .close, size: 13, tint: KStepStyle.ink.opacity(0.65))
-                            .frame(width: 44, height: 44)
-                            .contentShape(Rectangle())
-                    }.buttonStyle(ComposerPressStyle())
-                        .accessibilityLabel(LocalizedStringKey("Clear link"))
-                        .accessibilityIdentifier("home.clearLink")
-                }
+            .keyboardInputRegion("home-link-input")
+
+            if pasteError {
+                LocalizedText(pasteErrorMessage)
+                    .font(.stage(.footnote)).foregroundStyle(KStepStyle.danger)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("home.linkError")
             }
-                // Link input and its clear action stay together, including when
-                // the outside-tap handler decides whether to dismiss the keyboard.
-                .padding(.trailing, link.isEmpty ? 14 : 6)
-                .environment(\.layoutDirection, .leftToRight)
-                .background(Color.white.opacity(0.65), in: RoundedRectangle(cornerRadius: 14))
-                .environment(\.colorScheme, .light)
-                .keyboardInputRegion("home-link-input")
-            ViewThatFits(in: .horizontal) {
-                HStack(spacing: 12) {
-                    allowanceLabel.fixedSize(horizontal: true, vertical: false)
-                    Spacer(minLength: 8)
-                    pasteButton
-                }
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack { Spacer(minLength: 0); pasteButton }
-                    allowanceLabel
-                }
-            }
+
             Button(action: resolve) {
-                HStack(spacing: 10) {
-                    Glyph(symbol: .play, size: 15, tint: KStepStyle.ink)
-                    LocalizedText("Open lesson").font(.stage(.subheadline, weight: .bold))
+                HStack(spacing: 8) {
+                    Glyph(symbol: .play, size: 14, tint: canOpenLink ? KStepStyle.ink : KStepStyle.secondary)
+                    LocalizedText("Open lesson")
+                        .font(.stage(.subheadline, weight: .bold))
+                        .fixedSize(horizontal: false, vertical: true)
+                        .multilineTextAlignment(.center)
                 }
-                    .padding(.horizontal, 16).padding(.vertical, 12)
-                    .frame(maxWidth: .infinity, minHeight: 48)
-                    .foregroundStyle(KStepStyle.ink)
-                    .background { PaperSurface(tone: canOpenLink ? .accent : .mistOnPaper) }
-                    .contentShape(Rectangle())
+                .padding(.horizontal, 12).padding(.vertical, 10)
+                .frame(maxWidth: .infinity, minHeight: 48)
+                .foregroundStyle(canOpenLink ? KStepStyle.ink : KStepStyle.secondary)
+                .background { StageSurface(tone: canOpenLink ? .accent : .plum) }
+                .contentShape(Rectangle())
             }.buttonStyle(ComposerPressStyle()).disabled(!canOpenLink)
                 .accessibilityIdentifier("home.openLesson")
-            HStack(alignment: .center, spacing: 12) {
-                LocalizedText("Use a lesson link or code shared through KStep.")
-                    .font(.stage(.caption)).foregroundStyle(KStepStyle.paperSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                Button { showingLinkGuide = true } label: {
-                    LocalizedText("How to").font(.stage(.caption, weight: .semibold))
-                        .underline().foregroundStyle(KStepStyle.ink)
-                        .fixedSize(horizontal: true, vertical: false)
-                        .frame(minWidth: 44, minHeight: 44)
-                        .contentShape(Rectangle())
-                }.buttonStyle(ComposerPressStyle())
-                    .accessibilityIdentifier("home.linkHelp")
+
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 8) {
+                    allowanceLabel.fixedSize(horizontal: true, vertical: false)
+                    Spacer(minLength: 0)
+                    linkHelpButton.fixedSize(horizontal: true, vertical: false)
+                }
+                VStack(alignment: .leading, spacing: 0) {
+                    allowanceLabel
+                    linkHelpButton
+                }.frame(maxWidth: .infinity, alignment: .leading)
             }
-        }.padding(20).background(KStepStyle.paper, in: RoundedRectangle(cornerRadius: 26))
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .onGeometryChange(for: CGFloat.self, of: { $0.size.width }) { composerWidth = $0 }
+        .padding(.top, 12)
+        .overlay(alignment: .top) { Divider().overlay(KStepStyle.line).allowsHitTesting(false) }
     }
+
+    private var lessonInput: some View {
+        let prompt = Text(verbatim: L10n.text("Lesson link or short code", language: AppLanguage.from(locale)))
+            .foregroundStyle(KStepStyle.secondary)
+        let fieldShape = RoundedRectangle(cornerRadius: 12, style: .continuous)
+        return HStack(spacing: 0) {
+            TextField(text: $link, prompt: prompt, axis: .vertical) {
+                LocalizedText("Lesson link or short code")
+            }
+            .lineLimit(1...3)
+            .keyboardType(.URL)
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled()
+            .focused($focused)
+            .font(.stage(.subheadline))
+            .foregroundStyle(KStepStyle.paper)
+            .tint(KStepStyle.accent)
+            .padding(.horizontal, 12).padding(.vertical, 10)
+            .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
+            .environment(\.layoutDirection, .leftToRight)
+            if !link.isEmpty {
+                Button {
+                    link = ""
+                    focused = true
+                } label: {
+                    Glyph(symbol: .close, size: 13, tint: KStepStyle.secondary)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
+                }.buttonStyle(PressStyle())
+                    .accessibilityLabel(LocalizedStringKey("Clear link"))
+                    .accessibilityIdentifier("home.clearLink")
+            }
+        }.background {
+            fieldShape.fill(KStepStyle.ink)
+                .overlay(fieldShape.strokeBorder(focused ? KStepStyle.accent : KStepStyle.secondary.opacity(0.65)))
+        }
+    }
+
     private var canOpenLink: Bool { searchRequest == nil && link.nilIfBlank != nil }
+
+    private var allowanceText: LocalizedText? {
+        guard api.session != nil else { return nil }
+        if commerce.premium || quota.unlimited { return LocalizedText("Unlimited lesson views today") }
+        if quota.error != nil { return LocalizedText("Couldn’t check remaining views") }
+        if quota.usage == nil { return LocalizedText("Checking remaining views…") }
+        let count = quota.watchesLeft
+        let key = count == 1 ? "%@ lesson view left today" : "%@ lesson views left today"
+        return LocalizedText(key, count.formatted(.number.locale(locale)))
+    }
+
     @ViewBuilder private var allowanceLabel: some View {
-        if api.session != nil {
-            LocalizedText(quota.usage == nil ? "Loading…" : commerce.premium || quota.unlimited ? "Unlimited viewing today" : "\(quota.watchesLeft) views left today")
-                .font(.stage(.caption)).foregroundStyle(KStepStyle.paperSecondary)
+        if let allowanceText {
+            allowanceText
+                .font(.stage(.caption))
+                .monospacedDigit()
+                .foregroundStyle(KStepStyle.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
+
+    private var linkHelpButton: some View {
+        Button { showingLinkGuide = true } label: {
+            LocalizedText("Link & code help")
+                .font(.stage(.caption, weight: .semibold))
+                .underline()
+                .foregroundStyle(KStepStyle.paper)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(minWidth: 44, minHeight: 44, alignment: .leading)
+                .contentShape(Rectangle())
+        }.buttonStyle(PressStyle())
+            .accessibilityIdentifier("home.linkHelp")
+    }
+
     private var pasteButton: some View {
         Button(action: pasteCopiedLink) {
             LocalizedText("Paste").font(.stage(.footnote, weight: .semibold))
-                .fixedSize(horizontal: true, vertical: false)
-                .padding(.horizontal, 18).padding(.vertical, 10)
-                .frame(minHeight: 44)
+                .fixedSize(horizontal: false, vertical: true)
+                .layoutPriority(1)
+                .padding(.horizontal, 12).padding(.vertical, 8)
+                .frame(minWidth: 44, minHeight: 48)
+                .multilineTextAlignment(.center)
                 .foregroundStyle(KStepStyle.paper)
-                .background { PaperSurface(tone: .inkOnPaper) }
+                .background {
+                    RoundedRectangle(cornerRadius: 12)
+                        .strokeBorder(KStepStyle.secondary.opacity(0.65))
+                }
                 .contentShape(Rectangle())
-        }.buttonStyle(ComposerPressStyle())
+        }.buttonStyle(PressStyle())
             .accessibilityIdentifier("home.pasteLink")
     }
+
     private func pasteCopiedLink() {
         guard let text = UIPasteboard.general.string, text.nilIfBlank != nil else {
-            showLinkFailure("Copy a KStep link or lesson code first, then tap Paste.")
+            pasteError = true
+            UIAccessibility.post(notification: .announcement,
+                                 argument: L10n.text(pasteErrorMessage, language: AppLanguage.from(locale)))
             return
         }
+        pasteError = false
         link = text
     }
     @ViewBuilder private var recentLinks: some View {
@@ -233,17 +383,17 @@ struct HomeView: View {
         }
     }
     @ViewBuilder private var lessonActions: some View {
-        lessonAction(.feed, title: "Watch tutorials", action: discover)
-        lessonAction(.edit, title: "Film and review", action: openTools)
+        lessonAction(.feed, title: "Browse lessons", action: discover)
+        lessonAction(.edit, title: "Review video", action: openTools)
     }
 
     private func lessonAction(_ symbol: KStepGlyph, title: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: 8) {
-                Glyph(symbol: symbol, size: 18, tint: KStepStyle.accent)
-                LocalizedText(title).font(.stage(.subheadline, weight: .bold))
+                Glyph(symbol: symbol, size: 17, tint: KStepStyle.secondary)
+                LocalizedText(title).font(.stage(.subheadline, weight: .semibold))
                     .fixedSize(horizontal: false, vertical: true)
-            }.padding(12).frame(maxWidth: .infinity, minHeight: 48)
+            }.padding(12).frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
                 .foregroundStyle(KStepStyle.paper)
                 .background { StageSurface(tone: .mist) }
                 .contentShape(Rectangle())
@@ -252,19 +402,15 @@ struct HomeView: View {
     private func resolve() {
         guard let text = link.nilIfBlank, searchRequest == nil else { return }
         focused = false
-        guard api.session != nil else { showLinkFailure("Your connection is not ready yet. Please try again."); return }
+        guard api.session != nil else { showingConnectionFailure = true; return }
+        pasteError = false
         // Preserve exactly what was entered. Search owns loading, errors and cursor
         // pagination; do not fall back to the old landing-page resolver.
         searchRequest = LessonSearch(query: text)
     }
-    private func showLinkFailure(_ message: String) {
-        linkFailure = message
-        showingLinkFailure = true
-    }
 }
 
-// Disabled artwork already has its own legible palette; do not fade the entire
-// button into the paper surface as the shared legacy PressStyle does.
+// The lesson action supplies its own disabled colors.
 private struct ComposerPressStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label.opacity(configuration.isPressed ? 0.8 : 1)
@@ -348,15 +494,12 @@ struct LinkGuideSheet: View {
     @Environment(\.dismiss) private var dismiss
     var body: some View {
         VStack(spacing: 0) {
-            SheetHeading(title: "Open your next lesson") { dismiss() }
+            SheetHeading(title: "Lesson links and codes") { dismiss() }
             ScrollView {
-                VStack(alignment: .leading, spacing: 26) {
-                    StageArtwork(kind: .lesson, height: 150)
-                    FeatureRow(symbol: .link, title: "1. Copy a KStep link", detail: "Use a lesson link or code shared through KStep.")
-                    FeatureRow(symbol: .search, title: "2. Paste it above", detail: "Tap Paste or enter the lesson code exactly as received. Codes are case-sensitive.")
-                    FeatureRow(symbol: .play, title: "3. Open and watch", detail: "Tap Open lesson to find matching lessons, then swipe to watch.")
-                    LocalizedText("No results? Check your input, or ask the sender for a new link.")
-                        .font(.stage(.footnote)).foregroundStyle(KStepStyle.secondary)
+                VStack(alignment: .leading, spacing: 20) {
+                    FeatureRow(symbol: .link, title: "Paste a link or enter a code",
+                               detail: "Enter the code exactly as shared, including capital letters.")
+                    FeatureRow(symbol: .play, title: "Open lesson", detail: "Swipe up or down to change videos")
                     ActionButton(title: "Got it") { dismiss() }
                 }.kstepPage()
             }

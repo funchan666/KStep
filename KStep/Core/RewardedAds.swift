@@ -17,7 +17,8 @@ final class RewardedAds: NSObject, ObservableObject, FullScreenContentDelegate {
     private var startupStarted = false
     @Published private(set) var isPreparingAppOpen = false
     private var appOpenTask: Task<Void, Never>?
-    private var appOpenPreloadTask: Task<AppOpenAd, Error>?
+    private var demoAppOpenPreparation: Task<Void, Error>?
+    private var appOpenPreloadTask: Task<Void, Error>?
     private var preloadUnitID: String?
     private var preloadRequestID: UUID?
     private var preparedAppOpen: AppOpenAd?
@@ -57,8 +58,8 @@ final class RewardedAds: NSObject, ObservableObject, FullScreenContentDelegate {
         rewardGranted = false
         unavailableReward = nil
         let packagedAppID = Bundle.main.object(forInfoDictionaryKey: "GADApplicationIdentifier") as? String
-        guard let placement = commerce.release?.googlePlacement(for: policy.rewardedAdType, packagedAppID: packagedAppID,
-                                                                   testMode: commerce.api.configuration.adsTestMode) else {
+        guard let placement = GoogleAdPlacement.resolve(for: policy.rewardedAdType, release: commerce.release,
+                packagedAppID: packagedAppID, testMode: commerce.api.configuration.adsTestMode) else {
             appOpenLog.error("Rewarded ad configuration missing, invalid or inconsistent with the packaged App ID")
             grantUnavailableReward(attemptID, owner: owner, commerce: commerce, quota: quota, kind: kind)
             return
@@ -182,13 +183,16 @@ final class RewardedAds: NSObject, ObservableObject, FullScreenContentDelegate {
         }
     }
 
-    private func preloadAppOpen(unitID: String) async throws -> AppOpenAd {
-        if preparedUnitID == unitID, let ad = preparedAppOpen, let date = preparedAppOpenDate,
+    private func preloadAppOpen(unitID: String) async throws {
+        if preparedUnitID == unitID, preparedAppOpen != nil, let date = preparedAppOpenDate,
            Date().timeIntervalSince(date) >= 0, Date().timeIntervalSince(date) < 4 * 60 * 60 {
             appOpenLog.info("Using preloaded app-open ad")
-            return ad
+            return
         }
-        if let task = appOpenPreloadTask, preloadUnitID == unitID { return try await task.value }
+        if let task = appOpenPreloadTask, preloadUnitID == unitID {
+            try await task.value
+            return
+        }
         appOpenPreloadTask?.cancel()
         preparedAppOpen = nil
         preparedAppOpenDate = nil
@@ -196,13 +200,14 @@ final class RewardedAds: NSObject, ObservableObject, FullScreenContentDelegate {
         preloadUnitID = unitID
         let requestID = UUID()
         preloadRequestID = requestID
-        // This task belongs to the inventory cache, not a splash-screen deadline.
-        let task = Task { @MainActor [weak self] () throws -> AppOpenAd in
+        // The load can outlast the splash screen. Keep the SDK object in the main-actor cache.
+        let task: Task<Void, Error> = Task { @MainActor [weak self] in
             let began = ContinuousClock.now
             do {
-                let ad = try await AppOpenAd.load(with: unitID, request: Request())
+                guard let self else { throw CancellationError() }
+                let ad = try await self.loadAppOpenInventory(unitID: unitID)
                 try Task.checkCancellation()
-                guard let self, self.preloadRequestID == requestID else { throw CancellationError() }
+                guard self.preloadRequestID == requestID else { throw CancellationError() }
                 self.preparedAppOpen = ad
                 self.preparedAppOpenDate = Date()
                 self.preparedUnitID = unitID
@@ -210,7 +215,6 @@ final class RewardedAds: NSObject, ObservableObject, FullScreenContentDelegate {
                 self.preloadUnitID = nil
                 self.preloadRequestID = nil
                 self.appOpenLog.info("App-open inventory ready after \(began.duration(to: .now).description, privacy: .public)")
-                return ad
             } catch {
                 if let self, self.preloadRequestID == requestID {
                     self.appOpenPreloadTask = nil
@@ -223,7 +227,23 @@ final class RewardedAds: NSObject, ObservableObject, FullScreenContentDelegate {
             }
         }
         appOpenPreloadTask = task
-        return try await task.value
+        try await task.value
+    }
+
+    private func loadAppOpenInventory(unitID: String) async throws -> AppOpenAd {
+        do {
+            return try await AppOpenAd.load(with: unitID, request: Request())
+        } catch {
+            let failure = error as NSError
+            guard unitID == GoogleDemoAds.appOpenUnitID, failure.domain == GADErrorDomain,
+                  [RequestError.Code.networkError.rawValue, RequestError.Code.timeout.rawValue].contains(failure.code) else {
+                throw error
+            }
+            try await Task.sleep(for: .milliseconds(600))
+            try Task.checkCancellation()
+            appOpenLog.info("Retrying demo app-open after network error; code=\(failure.code)")
+            return try await AppOpenAd.load(with: unitID, request: Request())
+        }
     }
 
     // Cold start includes pre-login guest preparation. Foreground returns use the same gate.
@@ -231,6 +251,11 @@ final class RewardedAds: NSObject, ObservableObject, FullScreenContentDelegate {
         guard !startupStarted else { return }
         startupStarted = true
         requestAppOpen(commerce: commerce, accountAccess: accountAccess, coldStart: true)
+    }
+
+    func continueStartup() {
+        guard !startupFinished, isPreparingAppOpen, !appOpenConsentPresented else { return }
+        finishAppOpen(reason: "continue-tapped", preservePreparation: true)
     }
 
     func didEnterBackground() {
@@ -251,18 +276,30 @@ final class RewardedAds: NSObject, ObservableObject, FullScreenContentDelegate {
             if coldStart { startupFinished = true }
             return
         }
+        let testMode = commerce.api.configuration.adsTestMode
+        let packagedAppID = Bundle.main.object(forInfoDictionaryKey: "GADApplicationIdentifier") as? String
+        let demoPlacement = GoogleAdPlacement.resolve(for: 1, release: nil, packagedAppID: packagedAppID, testMode: testMode)
         let attempt = UUID()
         appOpenAttempt = attempt
         isPreparingAppOpen = true
-        // Bound only this presentation opportunity. A slow network must not keep
-        // the home screen locked or discard inventory for the next foreground.
-        let waitingBudget = coldStart ? 2.0 : 1.0
+        // Test inventory took over 12 seconds on the simulator. Keep the
+        // longer test-only window dismissible while the request runs.
+        let coldStartBudget = demoPlacement == nil ? 2.0 : 15.0
+        let waitingBudget = coldStart ? coldStartBudget : 1.0
         appOpenStage = "authentication"
         appOpenLog.info("App-open opportunity started; coldStart=\(coldStart), budget=\(waitingBudget)")
         scheduleAppOpenDeadline(attempt: attempt, seconds: waitingBudget)
+
+        if let demoPlacement, !commerce.premium {
+            demoAppOpenPreparation = Task {
+                try Task.checkCancellation()
+                self.startSDKIfNeeded()
+                try await self.preloadAppOpen(unitID: demoPlacement.unitID)
+            }
+        }
+        let demoInventory = demoAppOpenPreparation
         appOpenTask = Task { [weak self] in
             guard let self else { return }
-            let packagedAppID = Bundle.main.object(forInfoDictionaryKey: "GADApplicationIdentifier") as? String
             do {
                 try await commerce.api.prepareVisitor()
                 try Task.checkCancellation()
@@ -280,8 +317,8 @@ final class RewardedAds: NSObject, ObservableObject, FullScreenContentDelegate {
                 let unit = commerce.release?.adList?.first {
                     $0.adType == 1 && $0.advertiser?.lowercased() == "google"
                 }
-                guard let placement = commerce.release?.googlePlacement(for: 1, packagedAppID: packagedAppID,
-                                                                       testMode: commerce.api.configuration.adsTestMode) else {
+                guard let placement = GoogleAdPlacement.resolve(for: 1, release: commerce.release,
+                        packagedAppID: packagedAppID, testMode: testMode) else {
                     self.appOpenLog.error("App-open configuration missing, invalid or inconsistent with the packaged App ID")
                     self.finishAppOpen(attempt: attempt, reason: "ad-configuration-unavailable"); return
                 }
@@ -305,26 +342,34 @@ final class RewardedAds: NSObject, ObservableObject, FullScreenContentDelegate {
                     })
                 guard AppOpenTiming.isDue(intervalMinutes: interval,
                     lastShown: UserDefaults.standard.object(forKey: key) as? Date) else {
-                    Task { try? await self.preloadAppOpen(unitID: unitID) }
+                    if demoInventory == nil { Task { try? await self.preloadAppOpen(unitID: unitID) } }
                     self.finishAppOpen(attempt: attempt, reason: "interval-not-due")
                     return
                 }
-                let ad = try await self.preloadAppOpen(unitID: unitID)
+                if let demoInventory { try await demoInventory.value }
+                else { try await self.preloadAppOpen(unitID: unitID) }
                 try Task.checkCancellation()
                 guard self.appOpenAttempt == attempt, commerce.api.session?.userId.value == owner,
-                      !commerce.premium, UIApplication.shared.applicationState == .active,
+                      commerce.rightsVerified, !commerce.premium, UIApplication.shared.applicationState == .active,
                       !self.busy, !self.isPresenting, !commerce.busy, !commerce.preparingPurchase,
                       !accountAccess.isBusy,
                       AppOpenTiming.isDue(intervalMinutes: interval,
                         lastShown: UserDefaults.standard.object(forKey: key) as? Date) else {
-                    self.finishAppOpen(attempt: attempt); return
+                    self.finishAppOpen(attempt: attempt, reason: "presentation-no-longer-eligible"); return
+                }
+                guard self.preparedUnitID == unitID, let ad = self.preparedAppOpen else {
+                    self.finishAppOpen(attempt: attempt, reason: "inventory-unavailable")
+                    return
                 }
                 do { try ad.canPresent(from: nil) }
                 catch {
                     self.preparedAppOpen = nil
                     self.preparedAppOpenDate = nil
                     self.preparedUnitID = nil
-                    throw error
+                    let failure = error as NSError
+                    self.appOpenLog.error("App-open presenter unavailable; domain=\(failure.domain, privacy: .public), code=\(failure.code)")
+                    self.finishAppOpen(attempt: attempt, reason: "presenter-unavailable")
+                    return
                 }
                 self.preparedAppOpen = nil
                 self.preparedAppOpenDate = nil
@@ -365,8 +410,12 @@ final class RewardedAds: NSObject, ObservableObject, FullScreenContentDelegate {
         appOpenAttempt = nil
         appOpenDeadline?.cancel()
         appOpenDeadline = nil
-        if !preservePreparation { appOpenTask?.cancel() }
+        if !preservePreparation {
+            appOpenTask?.cancel()
+            demoAppOpenPreparation?.cancel()
+        }
         appOpenTask = nil
+        demoAppOpenPreparation = nil
         appOpenAd = nil
         appOpenHistoryKey = nil
         isPreparingAppOpen = false
@@ -386,10 +435,7 @@ final class RewardedAds: NSObject, ObservableObject, FullScreenContentDelegate {
     }
     func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
         if let current = appOpenAd, ad === current {
-            let unitID = presentedUnitID
-            presentedUnitID = nil
-            finishAppOpen()
-            if let unitID { Task { try? await self.preloadAppOpen(unitID: unitID) } }
+            finishPresentedAppOpen(reason: "dismissed")
             return
         }
         guard let current = rewarded, ad === current else { return }
@@ -400,13 +446,25 @@ final class RewardedAds: NSObject, ObservableObject, FullScreenContentDelegate {
         else if error == nil { message = "No reward was received. Finish the ad to receive your reward." }
     }
     func ad(_ ad: FullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
-        if let current = appOpenAd, ad === current { finishAppOpen(); return }
+        if let current = appOpenAd, ad === current {
+            let failure = error as NSError
+            appOpenLog.error("App-open presentation failed; domain=\(failure.domain, privacy: .public), code=\(failure.code)")
+            finishPresentedAppOpen(reason: "presentation-failed")
+            return
+        }
         guard let current = rewarded, ad === current else { return }
         rewarded = nil
         isPresenting = false
         let fallback = unavailableReward
         unavailableReward = nil
         if !rewardGranted { fallback?() }
+    }
+
+    private func finishPresentedAppOpen(reason: String) {
+        let unitID = presentedUnitID
+        presentedUnitID = nil
+        finishAppOpen(reason: reason)
+        if let unitID { Task { try? await self.preloadAppOpen(unitID: unitID) } }
     }
 }
 

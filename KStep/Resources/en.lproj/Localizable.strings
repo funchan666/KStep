@@ -20,7 +20,7 @@
 "A little knowledge for your next session." = "A little knowledge for your next session.";
 "A little luck, on us" = "A little luck, on us";
 "A right-handed player's backhand is usually struck on the left side of the body, slightly in front. A left-handed player reverses the sides. Give yourself room instead of letting the ball arrive too close." = "A right-handed player's backhand is usually struck on the left side of the body, slightly in front. A left-handed player reverses the sides. Give yourself room instead of letting the ball arrive too close.";
-"A secure connection to KStep could not be established. Check your network or VPN, then try again. If it continues, the service may be temporarily unavailable." = "A secure connection to KStep could not be established. Check your network or VPN, then try again. If it continues, the service may be temporarily unavailable.";
+"Couldn’t connect securely. Check your network or VPN, then try again. If it continues, the service may be temporarily unavailable." = "Couldn’t connect securely. Check your network or VPN, then try again. If it continues, the service may be temporarily unavailable.";
 "A serve starts with the toss." = "A serve starts with the toss.";
 "A short guide to following the score." = "A short guide to following the score.";
 "Access password" = "Access password";
@@ -70,8 +70,7 @@
 "Choose your language" = "Choose your language";
 "Choose your practice footage in Tools to keep a local working copy." = "Choose your practice footage in Tools to keep a local working copy.";
 "Clear" = "Clear";
-"KStep is starting" = "KStep is starting";
-"KStep’s online service is not configured yet. Local editing is available." = "KStep’s online service is not configured yet. Local editing is available.";
+"The online service is not configured yet. Local editing is available." = "The online service is not configured yet. Local editing is available.";
 "Close" = "Close";
 "Confirming your purchase…" = "Confirming your purchase…";
 "Connecting your lesson feed…" = "Connecting your lesson feed…";
@@ -141,6 +140,7 @@
 "If a payment is waiting to be confirmed, retry without purchasing again." = "If a payment is waiting to be confirmed, retry without purchasing again.";
 "If the server has won two points and the receiver one, the score is 30–15." = "If the server has won two points and the receiver one, the score is 30–15.";
 "Imported video" = "Imported video";
+"Video" = "Video";
 "Importing…" = "Importing…";
 "Imports" = "Imports";
 "In standard advantage scoring, zero is called love. The next points are 15, 30 and 40. A player wins a game with at least four points and a lead of two. The server's score is announced first." = "In standard advantage scoring, zero is called love. The next points are 15, 30 and 40. A player wins a game with at least four points and a lead of two. The server's score is announced first.";
@@ -284,7 +284,7 @@
 "Test ads require Google's sample iOS App ID." = "Test ads require Google's sample iOS App ID.";
 "The Championships are held at the All England Club. Wimbledon is the only one of the four majors still played on grass." = "The Championships are held at the All England Club. Wimbledon is the only one of the four majors still played on grass.";
 "The ad finished, but its reward could not be saved. %@" = "The ad finished, but its reward could not be saved. %@";
-"The copy in KStep will be removed. The original in Photos or Files will stay untouched." = "The copy in KStep will be removed. The original in Photos or Files will stay untouched.";
+"This removes the library copy. Your original stays in Photos or Files." = "This removes the library copy. Your original stays in Photos or Files.";
 "The direction of the racket face at contact strongly affects where the ball goes. Begin with a comfortable swing and aim to keep the ball in play. Add pace and spin as your contact becomes more reliable." = "The direction of the racket face at contact strongly affects where the ball goes. Begin with a comfortable swing and aim to keep the ball in play. Add pace and spin as your contact becomes more reliable.";
 "The document was interrupted. Please try again." = "The document was interrupted. Please try again.";
 "The export finished but could not be added to your library. %@" = "The export finished but could not be added to your library. %@";
@@ -473,7 +473,6 @@
 "Download could not be saved. Please try again. (%@)" = "Download could not be saved. Please try again. (%@)";
 "Loading ad…" = "Loading ad…";
 "Exporting…" = "Exporting…";
-"This stream can be watched offline in KStep but cannot be exported." = "This stream can be watched offline in KStep but cannot be exported.";
 
 "Finish downloading this video to export it." = "Finish downloading this video to export it.";
 
@@ -522,12 +521,8 @@
 "Finish this ad for unlimited downloads today." = "Finish this ad for unlimited downloads today.";
 "Connect to refresh your allowance." = "Connect to refresh your allowance.";
 
-"KStep link or lesson code" = "KStep link or lesson code";
 "Paste" = "Paste";
 "Open lesson" = "Open lesson";
-"Use a lesson link or code shared through KStep." = "Use a lesson link or code shared through KStep.";
-"Copy a KStep link or lesson code first, then tap Paste." = "Copy a KStep link or lesson code first, then tap Paste.";
-"1. Copy a KStep link" = "1. Copy a KStep link";
 "Tap Paste or enter the lesson code exactly as received. Codes are case-sensitive." = "Tap Paste or enter the lesson code exactly as received. Codes are case-sensitive.";
 "Tap Open lesson to find matching lessons, then swipe to watch." = "Tap Open lesson to find matching lessons, then swipe to watch.";
 
@@ -535,14 +530,20 @@
 "The browser could not open. Please try again." = "The browser could not open. Please try again.";
 "Connect to verify your Plus membership before exporting." = "Connect to verify your Plus membership before exporting.";
 "Export is included with Plus." = "Export is included with Plus.";
-"Unlimited views, downloads and media exports." = "Unlimited views, downloads and media exports.";
-"No matching lessons. Search the web with your original input." = "No matching lessons. Search the web with your original input.";
+"Included with Plus" = "Included with Plus";
+"Unlimited lesson views" = "Unlimited lesson views";
+"Unlimited offline downloads" = "Unlimited offline downloads";
+"No ads on launch" = "No ads on launch";
+"Export edited videos as MP4" = "Export edited videos as MP4";
 
 "Official website" = "Official website";
 
 "Subscribe" = "Subscribe";
 
 "Billed every %@" = "Billed every %@";
+"Choose a plan" = "Choose a plan";
+"Billed monthly" = "Billed monthly";
+"Billed yearly" = "Billed yearly";
 
 "Apple updated this plan. Review the price and billing period, then continue." = "Apple updated this plan. Review the price and billing period, then continue.";
 
@@ -555,3 +556,53 @@
 "The distribution package does not exist" = "The distribution package does not exist";
 "Web search" = "Web search";
 "Opening page…" = "Opening page…";
+
+"Rehearsal library" = "Rehearsal library";
+"Rehearsal pass" = "Rehearsal pass";
+
+/* Home and practice shortcuts */
+"Learn the chorus one eight-count at a time." = "Learn the chorus one eight-count at a time.";
+"Practice room" = "Practice room";
+"Couldn’t load lesson collections" = "Couldn’t load lesson collections";
+"Find a lesson" = "Find a lesson";
+"Unlimited lesson views today" = "Unlimited lesson views today";
+"Couldn’t check remaining views" = "Couldn’t check remaining views";
+"Checking remaining views…" = "Checking remaining views…";
+"%@ lesson view left today" = "%@ lesson view left today";
+"%@ lesson views left today" = "%@ lesson views left today";
+"Link & code help" = "Link & code help";
+"Copy a lesson link or code, then tap Paste." = "Copy a lesson link or code, then tap Paste.";
+"Couldn’t open the lesson" = "Couldn’t open the lesson";
+"Browse lessons" = "Browse lessons";
+"Review video" = "Review video";
+"Lesson links and codes" = "Lesson links and codes";
+"Paste a link or enter a code" = "Paste a link or enter a code";
+"Enter the code exactly as shared, including capital letters." = "Enter the code exactly as shared, including capital letters.";
+"Rehearsal log" = "Rehearsal log";
+"Track each run by section and eight-count." = "Track each run by section and eight-count.";
+"Dance notes" = "Dance notes";
+"5, 6, 7, 8!" = "5, 6, 7, 8!";
+
+"Rehearsal" = "Rehearsal";
+"Eight-count" = "Eight-count";
+"Practice speed" = "Practice speed";
+"Open a dance lesson" = "Open a dance lesson";
+"Choreo collections" = "Choreo collections";
+
+/* Stage screens */
+"Continue to app" = "Continue to app";
+"No lessons yet" = "No lessons yet";
+"Couldn’t load lessons" = "Couldn’t load lessons";
+"No matching lessons" = "No matching lessons";
+"Search the web with what you entered." = "Search the web with what you entered.";
+"Paste a shared lesson link or short code to start practicing." = "Paste a shared lesson link or short code to start practicing.";
+"My studio" = "My studio";
+"Explore Plus" = "Explore Plus";
+"Lesson views" = "Lesson views";
+"Checking today’s allowance…" = "Checking today’s allowance…";
+"Settings" = "Settings";
+"Remaining today" = "Remaining today";
+"Film and review" = "Film and review";
+"Review my dance video" = "Review my dance video";
+"Slow down a tricky eight-count." = "Slow down a tricky eight-count.";
+"Crop, rotate or mirror your dance video." = "Crop, rotate or mirror your dance video.";

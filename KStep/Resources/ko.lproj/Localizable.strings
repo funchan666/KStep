@@ -20,7 +20,7 @@
 "A little knowledge for your next session." = "다음 연습에 도움이 되는 작은 지식.";
 "A little luck, on us" = "작은 보너스를 드려요";
 "A right-handed player's backhand is usually struck on the left side of the body, slightly in front. A left-handed player reverses the sides. Give yourself room instead of letting the ball arrive too close." = "오른손잡이의 백핸드는 보통 몸 왼쪽의 약간 앞에서 칩니다. 왼손잡이는 반대입니다. 공이 몸에 너무 가까이 오지 않도록 공간을 만드세요.";
-"A secure connection to KStep could not be established. Check your network or VPN, then try again. If it continues, the service may be temporarily unavailable." = "KStep에 안전하게 연결할 수 없습니다. 네트워크나 VPN을 확인하고 다시 시도하세요. 문제가 계속되면 서비스가 일시적으로 중단되었을 수 있습니다.";
+"Couldn’t connect securely. Check your network or VPN, then try again. If it continues, the service may be temporarily unavailable." = "보안 연결을 설정할 수 없어요. 네트워크나 VPN을 확인한 뒤 다시 시도하세요. 문제가 계속되면 서비스를 일시적으로 이용할 수 없는 상태일 수 있어요.";
 "A serve starts with the toss." = "서브는 토스에서 시작됩니다.";
 "A short guide to following the score." = "점수를 이해하는 간단한 안내.";
 "Access password" = "접근 비밀번호";
@@ -70,8 +70,7 @@
 "Choose your language" = "언어를 선택하세요";
 "Choose your practice footage in Tools to keep a local working copy." = "도구에서 연습 영상을 선택해 기기에 작업용 사본을 보관하세요.";
 "Clear" = "지우기";
-"KStep is starting" = "KStep 시작 중";
-"KStep’s online service is not configured yet. Local editing is available." = "KStep 온라인 서비스가 아직 설정되지 않았습니다. 로컬 편집은 이용할 수 있습니다.";
+"The online service is not configured yet. Local editing is available." = "온라인 서비스가 아직 설정되지 않았어요. 기기에 있는 파일은 편집할 수 있어요.";
 "Close" = "닫기";
 "Confirming your purchase…" = "구매 확인 중…";
 "Connecting your lesson feed…" = "레슨 피드 연결 중…";
@@ -141,6 +140,7 @@
 "If a payment is waiting to be confirmed, retry without purchasing again." = "결제 확인 대기 중이라면 다시 구매하지 말고 확인을 재시도하세요.";
 "If the server has won two points and the receiver one, the score is 30–15." = "서버가 두 포인트, 리시버가 한 포인트를 얻었다면 점수는 30–15입니다.";
 "Imported video" = "가져온 영상";
+"Video" = "동영상";
 "Importing…" = "가져오는 중…";
 "Imports" = "가져온 파일";
 "In standard advantage scoring, zero is called love. The next points are 15, 30 and 40. A player wins a game with at least four points and a lead of two. The server's score is announced first." = "일반적인 어드밴티지 방식에서 0점은 러브입니다. 다음은 15, 30, 40입니다. 최소 네 포인트를 얻고 두 포인트 앞서야 게임을 이깁니다. 서버의 점수를 먼저 부릅니다.";
@@ -284,7 +284,7 @@
 "Test ads require Google's sample iOS App ID." = "테스트 광고에는 Google의 샘플 iOS 앱 ID가 필요합니다.";
 "The Championships are held at the All England Club. Wimbledon is the only one of the four majors still played on grass." = "윔블던은 올잉글랜드 클럽에서 개최됩니다. 4대 메이저 중 유일하게 현재 잔디 코트에서 열리는 대회입니다.";
 "The ad finished, but its reward could not be saved. %@" = "광고는 끝났지만 보상을 저장하지 못했습니다. %@";
-"The copy in KStep will be removed. The original in Photos or Files will stay untouched." = "KStep의 사본이 삭제됩니다. 사진이나 파일의 원본은 그대로 유지됩니다.";
+"This removes the library copy. Your original stays in Photos or Files." = "보관함의 사본을 삭제합니다. 원본은 사진 또는 파일 앱에 그대로 남습니다.";
 "The direction of the racket face at contact strongly affects where the ball goes. Begin with a comfortable swing and aim to keep the ball in play. Add pace and spin as your contact becomes more reliable." = "임팩트 때 라켓 면의 방향은 공의 방향에 큰 영향을 줍니다. 편안한 스윙으로 공을 코트 안에 넣는 것부터 시작하세요. 타점이 안정되면 속도와 회전을 더하세요.";
 "The document was interrupted. Please try again." = "문서가 중단되었습니다. 다시 시도하세요.";
 "The export finished but could not be added to your library. %@" = "내보내기는 완료했지만 보관함에 추가하지 못했습니다. %@";
@@ -473,7 +473,6 @@
 "Download could not be saved. Please try again. (%@)" = "다운로드를 저장하지 못했습니다. 다시 시도해 주세요. (%@)";
 "Loading ad…" = "광고 불러오는 중…";
 "Exporting…" = "내보내는 중…";
-"This stream can be watched offline in KStep but cannot be exported." = "이 영상은 KStep에서 오프라인으로 시청할 수 있지만 내보낼 수는 없습니다.";
 
 "Finish downloading this video to export it." = "다운로드가 완료되면 동영상을 내보낼 수 있습니다.";
 
@@ -522,12 +521,8 @@
 "Finish this ad for unlimited downloads today." = "이 광고를 끝까지 보면 오늘 무제한으로 다운로드할 수 있습니다.";
 "Connect to refresh your allowance." = "이용 한도를 새로고침하려면 인터넷에 연결하세요.";
 
-"KStep link or lesson code" = "KStep 링크 또는 레슨 코드";
 "Paste" = "붙여넣기";
 "Open lesson" = "레슨 열기";
-"Use a lesson link or code shared through KStep." = "KStep를 통해 공유받은 레슨 링크나 코드를 사용하세요.";
-"Copy a KStep link or lesson code first, then tap Paste." = "먼저 KStep 링크나 레슨 코드를 복사한 뒤 붙여넣기를 누르세요.";
-"1. Copy a KStep link" = "1. KStep 링크 복사";
 "Tap Paste or enter the lesson code exactly as received. Codes are case-sensitive." = "붙여넣기를 누르거나 받은 레슨 코드를 그대로 입력하세요. 코드는 대소문자를 구분합니다.";
 "Tap Open lesson to find matching lessons, then swipe to watch." = "레슨 열기를 눌러 일치하는 레슨을 찾은 뒤 스와이프하여 시청하세요.";
 
@@ -535,14 +530,20 @@
 "The browser could not open. Please try again." = "브라우저를 열 수 없습니다. 다시 시도해 주세요.";
 "Connect to verify your Plus membership before exporting." = "내보내기 전에 인터넷에 연결해 Plus 멤버십을 확인해 주세요.";
 "Export is included with Plus." = "내보내기는 Plus 멤버십에 포함됩니다.";
-"Unlimited views, downloads and media exports." = "시청, 다운로드, 미디어 내보내기를 무제한으로.";
-"No matching lessons. Search the web with your original input." = "일치하는 레슨이 없습니다. 입력한 내용으로 웹을 검색하세요.";
+"Included with Plus" = "Plus 혜택";
+"Unlimited lesson views" = "레슨 무제한 시청";
+"Unlimited offline downloads" = "오프라인 시청용 다운로드 무제한";
+"No ads on launch" = "앱 시작 시 광고 없음";
+"Export edited videos as MP4" = "편집한 영상을 MP4로 내보내기";
 
 "Official website" = "공식 웹사이트";
 
 "Subscribe" = "구독하기";
 
 "Billed every %@" = "%@마다 결제";
+"Choose a plan" = "요금제 선택";
+"Billed monthly" = "매월 결제";
+"Billed yearly" = "매년 결제";
 
 "Apple updated this plan. Review the price and billing period, then continue." = "Apple의 요금제 정보가 변경되었습니다. 가격과 결제 주기를 확인한 후 계속해 주세요.";
 
@@ -555,3 +556,53 @@
 "The distribution package does not exist" = "앱 배포 설정을 찾을 수 없습니다.";
 "Web search" = "웹 검색";
 "Opening page…" = "페이지 여는 중…";
+
+"Rehearsal library" = "안무 연습 모음";
+"Rehearsal pass" = "리허설 패스";
+
+/* Home and practice shortcuts */
+"Learn the chorus one eight-count at a time." = "후렴 안무를 8카운트씩 배워 보세요.";
+"Practice room" = "연습실";
+"Couldn’t load lesson collections" = "레슨 모음을 불러오지 못했어요";
+"Find a lesson" = "레슨 찾기";
+"Unlimited lesson views today" = "오늘 레슨 무제한 시청";
+"Couldn’t check remaining views" = "남은 시청 횟수를 확인할 수 없어요";
+"Checking remaining views…" = "남은 시청 횟수 확인 중…";
+"%@ lesson view left today" = "오늘 레슨 시청 %@회 남음";
+"%@ lesson views left today" = "오늘 레슨 시청 %@회 남음";
+"Link & code help" = "링크와 코드 사용법";
+"Copy a lesson link or code, then tap Paste." = "레슨 링크나 코드를 복사한 뒤 붙여넣기를 누르세요.";
+"Couldn’t open the lesson" = "레슨을 열지 못했어요";
+"Browse lessons" = "레슨 둘러보기";
+"Review video" = "영상 확인";
+"Lesson links and codes" = "레슨 링크와 코드";
+"Paste a link or enter a code" = "링크를 붙여넣거나 코드를 입력하세요";
+"Enter the code exactly as shared, including capital letters." = "대소문자까지 받은 코드 그대로 입력하세요.";
+"Rehearsal log" = "연습 기록";
+"Track each run by section and eight-count." = "곡의 구간과 8카운트별로 연습을 기록하세요.";
+"Dance notes" = "댄스 노트";
+"5, 6, 7, 8!" = "5, 6, 7, 8!";
+
+"Rehearsal" = "리허설";
+"Eight-count" = "8카운트";
+"Practice speed" = "연습 속도";
+"Open a dance lesson" = "댄스 레슨 열기";
+"Choreo collections" = "안무 모음";
+
+/* Stage screens */
+"Continue to app" = "앱으로 이동";
+"No lessons yet" = "아직 레슨이 없어요";
+"Couldn’t load lessons" = "레슨을 불러오지 못했어요";
+"No matching lessons" = "일치하는 레슨이 없어요";
+"Search the web with what you entered." = "입력한 내용으로 웹에서 검색할 수 있어요.";
+"Paste a shared lesson link or short code to start practicing." = "공유받은 레슨 링크나 짧은 코드를 붙여넣어 연습을 시작하세요.";
+"My studio" = "내 연습실";
+"Explore Plus" = "Plus 둘러보기";
+"Lesson views" = "레슨 시청";
+"Checking today’s allowance…" = "오늘의 이용 한도 확인 중…";
+"Settings" = "설정";
+"Remaining today" = "오늘 남은 횟수";
+"Film and review" = "촬영과 복습";
+"Review my dance video" = "내 댄스 영상 복습하기";
+"Slow down a tricky eight-count." = "어려운 8카운트를 느리게 재생해 보세요.";
+"Crop, rotate or mirror your dance video." = "댄스 영상을 자르거나 회전하고 좌우를 반전할 수 있어요.";

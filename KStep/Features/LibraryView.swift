@@ -13,22 +13,53 @@ struct LibraryView: View {
     @State private var removing: PracticeRecording?
     @State private var removingDownload: OfflineVideo?
     @State private var sharingMovieID: UUID?
-    private var itemCount: Int {
-        if filter == "Downloads" { return offline.videos.count }
-        return filter == "Saved" ? library.favorites.count : library.movies.filter { $0.isExport == (filter == "Exports") }.count
+    @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var typeSize
+
+    private var category: Category { Category(rawValue: filter) ?? .saved }
+    private var localMovies: [PracticeRecording] {
+        library.movies.filter { $0.isExport == (category == .exports) }
     }
+
+    private enum Category: String, CaseIterable, Identifiable {
+        case saved = "Saved"
+        case offline = "Downloads"
+        case imports = "Imports"
+        case exports = "Exports"
+
+        var id: String { rawValue }
+        var title: String {
+            switch self {
+            case .saved: "Favorites"
+            case .offline: "Offline videos"
+            case .imports, .exports: rawValue
+            }
+        }
+        var glyph: KStepGlyph {
+            switch self {
+            case .saved: .bookmark
+            case .offline: .download
+            case .imports: .folder
+            case .exports: .edit
+            }
+        }
+    }
+
     var body: some View {
-        GeometryReader { geometry in
-            ScrollView {
-                VStack(spacing: 0) {
-                    StageArtwork(kind: .notebook, height: min(geometry.size.width * 0.60, 260))
-                        .padding(.top, geometry.safeAreaInsets.top + 12)
-                        .padding(.bottom, 8)
-                        .frame(maxWidth: .infinity)
-                        .background(KStepStyle.background)
-                    libraryContent
+        StageScrollView { topInset in
+            VStack(spacing: 0) {
+                StagePhotoHeader(artwork: "LibraryStudio", height: 218, topInset: topInset) {
+                    LocalizedText("Library").font(.stage(.largeTitle, display: true))
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityAddTraits(.isHeader)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .stageColumn().padding(.top, 94).padding(.bottom, 12)
                 }
-            }.ignoresSafeArea(.container, edges: .top)
+                VStack(alignment: .leading, spacing: 24) {
+                    categoryPicker
+                    librarySection
+                }.kstepPage(top: 0)
+            }
         }.kstepScreenBackground().sheet(item: $sharing) { ShareSheet(items: [$0.url]) }
             .sheet(isPresented: $showingExportMembership) { MembershipView(exportRequired: true) }
             .fullScreenCover(item: $player) { PlayerScreen(route: $0) }
@@ -51,148 +82,271 @@ struct LibraryView: View {
                     VStack(alignment: .leading, spacing: 22) {
                         SheetHeading(title: "Delete this local copy?") { removing = nil }
                         Text(verbatim: movie.title).font(.stage(.headline))
-                        LocalizedText("The copy in KStep will be removed. The original in Photos or Files will stay untouched.").foregroundStyle(KStepStyle.secondary)
+                        LocalizedText("This removes the library copy. Your original stays in Photos or Files.").foregroundStyle(KStepStyle.secondary)
                         ActionButton(title: "Delete local copy") { library.delete(movie); removing = nil }
                         ActionButton(title: "Keep it", primary: false) { removing = nil }
                     }.padding(24)
                 }.kstepScreenBackground().presentationDetents([.medium, .large])
             }
     }
-    private var libraryContent: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            libraryFilters
-            if filter == "Downloads" { DownloadAllowanceSummary() }
-            SectionLabel(title: categoryTitle(filter), detail: "\(itemCount) \(itemCount == 1 ? "item" : "items") · On this device")
-            if offline.downloadingID != nil {
-                if let title = offline.currentTitle { Text(verbatim: title).font(.stage(.subheadline)).lineLimit(2) }
-                LocalizedText("Downloading · \(Int(offline.progress * 100))%").font(.stage(.caption))
-                ActionButton(title: "Cancel download", primary: false) { Task { await offline.cancel() } }
+
+    @ViewBuilder private var categoryPicker: some View {
+        if typeSize.isAccessibilitySize {
+            categoryButtons(stacked: true)
+        } else {
+            ViewThatFits(in: .horizontal) {
+                categoryButtons(stacked: false)
+                categoryButtons(stacked: true)
             }
-            if let error = offline.error {
-                ErrorNote(message: error)
-                if offline.downloadingID != nil {
-                    ActionButton(title: "Retry", primary: false) { Task { await offline.retryCompletion() } }
-                }
+        }
+    }
+
+    private func categoryButtons(stacked: Bool) -> some View {
+        let layout = stacked ? AnyLayout(VStackLayout(spacing: 2)) : AnyLayout(HStackLayout(spacing: 2))
+        return layout {
+            ForEach(Category.allCases) { entry in
+                categoryButton(entry, stacked: stacked)
             }
-            if filter == "Saved" {
-                if library.favorites.isEmpty { LibraryEmptyState(title: "Build your choreo collection.", message: "Save tutorials as you watch. Come back to the parts you want to drill.") }
-                ForEach(library.favorites) { clip in
-                    HStack(spacing: 14) {
-                        Button { player = PlayerRoute(clips: library.favorites, startID: clip.id) } label: {
-                            HStack(spacing: 14) {
-                                MediaCover(url: clip.coverURL).frame(width: 76, height: 100).clipShape(RoundedRectangle(cornerRadius: 14))
-                                VStack(alignment: .leading, spacing: 8) {
-                                    Text(verbatim: clip.title).font(.stage(.headline)).lineLimit(3)
-                                    Text(verbatim: clip.channel).font(.stage(.caption)).foregroundStyle(KStepStyle.secondary)
-                                }.frame(maxWidth: .infinity, alignment: .leading)
-                            }
-                        }.buttonStyle(PressStyle())
-                        IconButton(symbol: .bookmark, label: "Remove saved video", selected: true) { library.toggle(clip) }
+        }.padding(5).stageGlass(RoundedRectangle(cornerRadius: 16))
+    }
+
+    private func categoryButton(_ entry: Category, stacked: Bool) -> some View {
+        let selected = category == entry
+        let ink = selected ? KStepStyle.paper : KStepStyle.secondary
+        let label = entry == .offline && !stacked ? "Offline" : entry.title
+        let layout = stacked ? AnyLayout(HStackLayout(spacing: 8)) : AnyLayout(VStackLayout(spacing: 5))
+        return Button { filter = entry.rawValue } label: {
+            layout {
+                Glyph(symbol: entry.glyph, size: 17, tint: selected ? KStepStyle.accent : ink)
+                LocalizedText(label).font(.stage(.caption, weight: .semibold))
+                    .fixedSize(horizontal: false, vertical: true)
+                if stacked { Spacer(minLength: 6) }
+                Text(count(in: entry), format: .number.locale(locale)).font(.stage(.caption2))
+                    .monospacedDigit().foregroundStyle(KStepStyle.secondary)
+            }
+                .padding(.horizontal, 5).padding(.vertical, 8)
+                .frame(minWidth: stacked ? nil : 65, maxWidth: .infinity, minHeight: 44)
+                .foregroundStyle(ink)
+                .background(selected ? KStepStyle.paper.opacity(0.15) : .clear,
+                            in: RoundedRectangle(cornerRadius: 11))
+                .contentShape(Rectangle())
+        }.buttonStyle(PressStyle()).accessibilityAddTraits(selected ? .isSelected : [])
+            .accessibilityLabel(LocalizedStringKey(entry.title))
+            .accessibilityValue(Text(count(in: entry), format: .number.locale(locale)))
+    }
+
+    private var librarySection: some View {
+        let total = count(in: category)
+        return VStack(alignment: .leading, spacing: 16) {
+            SectionLabel(title: category.title, detail: "\(total) \(total == 1 ? "item" : "items") · On this device")
+                .accessibilityAddTraits(.isHeader)
+            if category == .offline { DownloadAllowanceSummary() }
+            downloadStatus
+            switch category {
+            case .saved:
+                if library.favorites.isEmpty {
+                    LibraryEmptyState(title: "Build your choreo collection.", message: "Save tutorials as you watch. Come back to the parts you want to drill.")
+                } else {
+                    LazyVStack(spacing: 10) {
+                        ForEach(library.favorites) { clip in favoriteRow(clip) }
                     }
                 }
-            } else if filter == "Downloads" {
+            case .offline:
                 if offline.videos.isEmpty {
                     LibraryEmptyState(title: "Available offline",
                                       message: "Download a lesson from its playback options to watch without a connection.")
-                }
-                ForEach(offline.videos) { video in
-                    HStack(spacing: 14) {
-                        Button {
-                            let clips = offline.videos.compactMap { item -> LessonClip? in
-                                offline.cached(item.id) == nil ? nil : offline.playable(item.clip)
-                            }
-                            if clips.contains(where: { $0.id == video.id }) {
-                                player = PlayerRoute(clips: clips, startID: video.id)
-                            } else { offline.error = "This download is no longer on this device. Download it again." }
-                        } label: {
-                            HStack(spacing: 14) {
-                                Glyph(symbol: .download, size: 28).frame(width: 60, height: 72)
-                                Text(verbatim: video.clip.title).font(.stage(.headline)).lineLimit(3)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                            }.contentShape(Rectangle())
-                        }.buttonStyle(PressStyle())
-                        VStack(spacing: 8) {
-                            VideoExportEntry(clip: offline.playable(video.clip), compact: true)
-                            IconButton(symbol: .close, label: "Remove download") { removingDownload = video }
-                        }
+                } else {
+                    LazyVStack(spacing: 10) {
+                        ForEach(offline.videos) { video in downloadRow(video) }
                     }
                 }
-            } else {
-                let movies = library.movies.filter { $0.isExport == (filter == "Exports") }
-                if movies.isEmpty {
-                    LibraryEmptyState(title: filter == "Exports" ? "Ready for your next upload." : "Your practice, in focus.",
-                                      message: filter == "Exports" ? "Finish a video or extract its audio in Practice. Your exports will be collected here." : "Choose your dance footage in Practice to keep a local working copy.")
-                }
-                ForEach(movies) { movie in
-                    HStack(spacing: 12) {
-                        Glyph(symbol: movie.isExport ? .download : .feed, size: 27)
-                            .frame(width: 60, height: 76)
-                            .background(KStepStyle.surface, in: RoundedRectangle(cornerRadius: 16))
-                        VStack(alignment: .leading, spacing: 7) {
-                            Text(verbatim: movie.title).font(.stage(.headline)).lineLimit(2)
-                            LocalizedDateText(date: movie.date).font(.stage(.caption)).foregroundStyle(KStepStyle.secondary)
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 8) {
-                                    if movie.filename.hasSuffix("m4a") == false {
-                                        Button("Edit") { edit(movie) }
-                                    }
-                                    Button(LocalizedStringKey(sharingMovieID == movie.id ? "Preparing export…" : "Export")) {
-                                        guard commerce.canExportMedia else { showingExportMembership = true; return }
-                                        sharingMovieID = movie.id
-                                        Task {
-                                            defer { sharingMovieID = nil }
-                                            do { sharing = SharedFile(url: try await library.shareFile(for: movie, commerce: commerce)) }
-                                            catch { library.error = error.localizedDescription }
-                                        }
-                                    }.disabled(sharingMovieID != nil)
-                                }
-                                .buttonStyle(CompactActionStyle())
-                            }
-                        }.frame(maxWidth: .infinity, alignment: .leading)
-                        IconButton(symbol: .close, label: "Delete local file") { removing = movie }
-                    }.padding(.vertical, 8)
-                }
-            }
-        }.kstepPage()
-    }
-
-    // Use the actual localized intrinsic widths, not device-name or language
-    // breakpoints. All categories stay visible, including in narrow containers.
-    private var libraryFilters: some View {
-        ViewThatFits(in: .horizontal) {
-            filterRow(["Saved", "Downloads", "Imports", "Exports"])
-            VStack(spacing: 8) {
-                filterRow(["Saved", "Downloads"])
-                filterRow(["Imports", "Exports"])
-            }
-            VStack(spacing: 8) {
-                ForEach(["Saved", "Downloads", "Imports", "Exports"], id: \.self) { value in
-                    filterButton(value)
+            case .imports, .exports:
+                if localMovies.isEmpty {
+                    LibraryEmptyState(title: category == .exports ? "Ready for your next upload." : "Your practice, in focus.",
+                                      message: category == .exports ? "Finish a video or extract its audio in Practice. Your exports will be collected here." : "Choose your dance footage in Practice to keep a local working copy.")
+                } else {
+                    LazyVStack(spacing: 10) {
+                        ForEach(localMovies) { movie in movieRow(movie) }
+                    }
                 }
             }
         }
     }
 
-    private func filterRow(_ values: [String]) -> some View {
-        HStack(spacing: 6) {
-            ForEach(values, id: \.self) { value in filterButton(value) }
+    private func count(in entry: Category) -> Int {
+        switch entry {
+        case .saved: library.favorites.count
+        case .offline: offline.videos.count
+        case .imports: library.movies.lazy.filter { !$0.isExport }.count
+        case .exports: library.movies.lazy.filter(\.isExport).count
         }
     }
 
-    private func categoryTitle(_ value: String) -> String {
-        value == "Saved" ? "Favorites" : value == "Downloads" ? "Offline videos" : value
+    @ViewBuilder private var downloadStatus: some View {
+        if offline.downloadingID != nil || offline.error != nil {
+            VStack(alignment: .leading, spacing: 8) {
+                if offline.downloadingID != nil {
+                    if let title = offline.currentTitle {
+                        Text(verbatim: title).font(.stage(.subheadline, weight: .semibold)).lineLimit(2)
+                    }
+                    LocalizedText("Downloading · \(Int(offline.progress * 100))%")
+                        .font(.stage(.caption)).monospacedDigit()
+                    Button("Cancel download") { Task { await offline.cancel() } }
+                        .buttonStyle(LibraryActionStyle())
+                }
+                if let error = offline.error {
+                    ErrorNote(message: error)
+                    if offline.downloadingID != nil {
+                        Button("Retry") { Task { await offline.retryCompletion() } }
+                            .buttonStyle(LibraryActionStyle())
+                    }
+                }
+            }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
+                .background(KStepStyle.surface, in: RoundedRectangle(cornerRadius: 10))
+        }
     }
-    private func filterButton(_ value: String) -> some View {
-        Button { filter = value } label: {
-            LocalizedText(categoryTitle(value)).font(.stage(.footnote, weight: .semibold))
-                .lineLimit(1).fixedSize(horizontal: true, vertical: false)
-                .padding(.horizontal, 10).padding(.vertical, 12)
-                .frame(maxWidth: .infinity, minHeight: 46)
-                .foregroundStyle(filter == value ? KStepStyle.ink : KStepStyle.paper)
-                .background { PaperSurface(tone: filter == value ? .accent : .plum) }
-                .contentShape(Rectangle())
-        }.buttonStyle(PressStyle())
-            .accessibilityAddTraits(filter == value ? .isSelected : [])
+
+    private func favoriteRow(_ clip: LessonClip) -> some View {
+        HStack(alignment: .center, spacing: 12) {
+            Button { player = PlayerRoute(clips: library.favorites, startID: clip.id) } label: {
+                HStack(spacing: 12) {
+                    playableCover(clip.coverURL, width: 62, height: 80)
+                    lessonTitle(clip)
+                }.contentShape(Rectangle())
+            }.buttonStyle(PressStyle())
+            removeButton(.bookmark, title: "Remove saved video") { library.toggle(clip) }
+        }
+        .modifier(LibraryRowSurface())
+    }
+
+    private func playableCover(_ url: URL?, width: CGFloat, height: CGFloat) -> some View {
+        MediaCover(url: url)
+            .frame(width: width, height: height)
+            .clipShape(.rect(cornerRadius: 10))
+            .overlay(alignment: .bottomLeading) {
+                Glyph(symbol: .play, size: 15, tint: KStepStyle.paper)
+                    .frame(width: 28, height: 28)
+                    .background(KStepStyle.ink.opacity(0.88), in: RoundedRectangle(cornerRadius: 7))
+                    .padding(3).allowsHitTesting(false)
+            }.accessibilityHidden(true)
+    }
+
+    private func lessonTitle(_ clip: LessonClip) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(verbatim: clip.title).font(.stage(.headline)).lineLimit(3)
+            if !clip.channel.isEmpty {
+                Text(verbatim: clip.channel).font(.stage(.caption))
+                    .foregroundStyle(KStepStyle.secondary).lineLimit(2)
+            }
+        }.fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func downloadRow(_ video: OfflineVideo) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Button { playDownload(video) } label: {
+                HStack(spacing: 12) {
+                    itemGlyph(.play)
+                    Text(verbatim: video.clip.title).font(.stage(.headline)).lineLimit(3)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }.contentShape(Rectangle())
+            }.buttonStyle(PressStyle())
+            HStack(spacing: 8) {
+                VideoExportEntry(clip: offline.playable(video.clip), compact: true)
+                Spacer(minLength: 0)
+                removeButton(.close, title: "Remove download") { removingDownload = video }
+            }
+        }
+        .modifier(LibraryRowSurface())
+    }
+
+    private func movieRow(_ movie: PracticeRecording) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .center, spacing: 12) {
+                itemGlyph(movie.filename.hasSuffix("m4a") ? .sound : movie.isExport ? .download : .feed)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(verbatim: movie.title).font(.stage(.headline)).lineLimit(2)
+                    LocalizedDateText(date: movie.date).font(.stage(.caption)).foregroundStyle(KStepStyle.secondary)
+                }.frame(maxWidth: .infinity, alignment: .leading)
+                removeButton(.close, title: "Delete local file") { removing = movie }
+            }
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 8) { movieActions(movie) }
+                VStack(alignment: .leading, spacing: 6) { movieActions(movie) }
+            }
+        }
+        .modifier(LibraryRowSurface())
+    }
+
+    @ViewBuilder private func movieActions(_ movie: PracticeRecording) -> some View {
+        if movie.filename.hasSuffix("m4a") == false {
+            Button("Edit") { edit(movie) }.buttonStyle(LibraryActionStyle())
+        }
+        Button(LocalizedStringKey(sharingMovieID == movie.id ? "Preparing export…" : "Export")) {
+            shareMovie(movie)
+        }.buttonStyle(LibraryActionStyle()).disabled(sharingMovieID != nil)
+    }
+
+    private func itemGlyph(_ symbol: KStepGlyph) -> some View {
+        Glyph(symbol: symbol, size: 19, tint: KStepStyle.accent)
+            .frame(width: 46, height: 46)
+            .background(KStepStyle.raised, in: RoundedRectangle(cornerRadius: 9))
+            .accessibilityHidden(true)
+    }
+
+    private func removeButton(_ symbol: KStepGlyph, title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Glyph(symbol: symbol, size: 16, tint: KStepStyle.accent)
+                .frame(width: 36, height: 36)
+                .background(KStepStyle.raised, in: RoundedRectangle(cornerRadius: 9))
+                .frame(width: 44, height: 44).contentShape(Rectangle())
+        }.buttonStyle(PressStyle()).accessibilityLabel(LocalizedStringKey(title))
+    }
+
+    private func playDownload(_ video: OfflineVideo) {
+        let clips = offline.videos.compactMap { item -> LessonClip? in
+            offline.cached(item.id) == nil ? nil : offline.playable(item.clip)
+        }
+        if clips.contains(where: { $0.id == video.id }) {
+            player = PlayerRoute(clips: clips, startID: video.id)
+        } else { offline.error = "This download is no longer on this device. Download it again." }
+    }
+
+    private func shareMovie(_ movie: PracticeRecording) {
+        guard commerce.canExportMedia else {
+            showingExportMembership = true
+            return
+        }
+        sharingMovieID = movie.id
+        Task {
+            defer { sharingMovieID = nil }
+            do { sharing = SharedFile(url: try await library.shareFile(for: movie, commerce: commerce)) }
+            catch { library.error = error.localizedDescription }
+        }
+    }
+}
+
+private struct LibraryRowSurface: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(10).background(KStepStyle.surface, in: RoundedRectangle(cornerRadius: 14))
+    }
+}
+
+private struct LibraryActionStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var enabled
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.stage(.footnote, weight: .bold))
+            .multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.horizontal, 13).padding(.vertical, 8)
+            .frame(minWidth: 44, minHeight: 44)
+            .foregroundStyle(KStepStyle.ink)
+            .background(KStepStyle.mist, in: RoundedRectangle(cornerRadius: 9))
+            .contentShape(Rectangle())
+            .opacity(!enabled ? 0.58 : configuration.isPressed ? 0.72 : 1)
     }
 }
 
@@ -249,7 +403,7 @@ struct VideoExportEntry: View {
     var body: some View {
         Group {
             if compact {
-                Button("Export") { showingExport = true }.buttonStyle(CompactActionStyle())
+                Button("Export") { showingExport = true }.buttonStyle(LibraryActionStyle())
             } else {
                 ActionButton(title: "Export video", primary: false) { showingExport = true }
             }
@@ -515,11 +669,12 @@ private struct LibraryEmptyState: View {
     let title: String
     let message: String
     var body: some View {
-        VStack(spacing: 10) {
-            LocalizedText(title).font(.stage(.headline))
+        VStack(alignment: .leading, spacing: 8) {
+            LocalizedText(title).font(.stage(.title3, weight: .semibold))
             LocalizedText(message).font(.stage(.subheadline)).foregroundStyle(KStepStyle.secondary)
                 .lineSpacing(3).fixedSize(horizontal: false, vertical: true)
-        }.multilineTextAlignment(.center).padding(.horizontal, 12).padding(.vertical, 24)
-            .frame(maxWidth: .infinity)
+        }.padding(.vertical, 18)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .overlay(alignment: .top) { Divider().overlay(KStepStyle.line).allowsHitTesting(false) }
     }
 }

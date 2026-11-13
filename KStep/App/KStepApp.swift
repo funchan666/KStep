@@ -64,7 +64,9 @@ struct KStepStartupHost: View {
                 .allowsHitTesting(finished)
                 .accessibilityHidden(!finished)
             if !finished {
-                KStepStartupView().transition(.opacity)
+                KStepStartupView(showContinue: commerce.api.configuration.adsTestMode && ads.isPreparingAppOpen) {
+                    ads.continueStartup()
+                }.transition(.opacity)
             }
         }
         .task(id: scenePhase) {
@@ -88,21 +90,39 @@ struct KStepStartupHost: View {
 }
 
 struct KStepStartupView: View {
+    @Environment(\.locale) private var locale
+    let showContinue: Bool
+    let onContinue: () -> Void
+
     var body: some View {
-        // Same centred mark as LaunchScreen.storyboard, so the hand-off does not jump.
-        KStepIllustration(name: "LaunchMark", height: 108).frame(width: 108)
-            .overlay(alignment: .bottom) { ProgressView().tint(KStepStyle.accent).offset(y: 52) }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .ignoresSafeArea(.container, edges: .all)
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(LocalizedStringKey("KStep is starting"))
-            .background(Color("LaunchBackground").ignoresSafeArea())
+        ZStack {
+            // Match the launch storyboard's mark during the transition.
+            KStepIllustration(name: "LaunchMark", height: 108).frame(width: 108)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .ignoresSafeArea(.container, edges: .all)
+            VStack {
+                Spacer(minLength: 0)
+                VStack(spacing: 8) {
+                    ProgressView().tint(KStepStyle.accent)
+                        .accessibilityLabel(Text(verbatim: L10n.text("Loading…", language: AppLanguage.from(locale))))
+                    if showContinue {
+                        Button(action: onContinue) {
+                            LocalizedText("Continue to app").font(.stage(.subheadline, weight: .semibold))
+                                .fixedSize(horizontal: false, vertical: true)
+                                .foregroundStyle(KStepStyle.paper)
+                                .padding(.horizontal, 16).frame(minHeight: 44)
+                                .contentShape(Rectangle())
+                        }.buttonStyle(PressStyle())
+                    }
+                }.padding(.horizontal, 20).padding(.bottom, 24)
+            }
+        }.background(Color("LaunchBackground").ignoresSafeArea())
     }
 }
 
 enum KStepTab: Int, CaseIterable, Hashable {
     case home, discover, tools, library, me
-    var name: String { ["Home", "Discover", "Practice", "Library", "Me"][rawValue] }
+    var name: String { ["Rehearsal", "Discover", "Practice", "Library", "Me"][rawValue] }
     // Original single-colour tab artwork; the system tab bar tints it.
     var artwork: String { ["TabHome", "TabDiscover", "TabTools", "TabLibrary", "TabMe"][rawValue] }
 }
@@ -125,10 +145,22 @@ private extension View {
     func kstepTab(_ tab: KStepTab) -> some View {
         tabItem { KStepTabItem(tab: tab) }
             .tag(tab)
-            .toolbarBackground(KStepStyle.background, for: .tabBar)
-            .toolbarBackground(.visible, for: .tabBar)
-            .toolbarColorScheme(.dark, for: .tabBar)
+            .modifier(StageTabBar())
             .accessibilityIdentifier("tab.\(tab.name.lowercased())")
+    }
+}
+
+private struct StageTabBar: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            // Native glass adapts when Duo places the tab bar along a side.
+            content.toolbarColorScheme(.dark, for: .tabBar)
+        } else {
+            content
+                .toolbarBackground(.regularMaterial, for: .tabBar)
+                .toolbarBackground(.visible, for: .tabBar)
+                .toolbarColorScheme(.dark, for: .tabBar)
+        }
     }
 }
 
@@ -139,25 +171,32 @@ struct KStepRootView: View {
     @EnvironmentObject private var quota: QuotaStore
     @EnvironmentObject private var offline: OfflineStore
     @Environment(\.scenePhase) private var scenePhase
-    @State private var tab: KStepTab = .home
+    @SceneStorage("root.tab") private var tab: KStepTab = .home
     @State private var editing: PracticeRecording?
-    @State private var linkDraft = ""
+    @SceneStorage("home.linkDraft") private var linkDraft = ""
+    @State private var revealLinkComposer = false
     @State private var libraryFilter = "Saved"
     var body: some View {
         TabView(selection: $tab) {
-            HomeView(openAccount: { tab = .me }, discover: { tab = .discover }, openTools: { tab = .tools }, link: $linkDraft)
+            HomeView(openAccount: { tab = .me }, discover: { tab = .discover }, openTools: { tab = .tools },
+                     link: $linkDraft, revealLinkComposer: $revealLinkComposer)
                 .kstepTab(.home)
-            // Mount the feed only while selected: it owns players and quota admission.
-            Group {
-                if tab == .discover { DiscoverView(onExit: { tab = .home }) }
-                else { KStepStyle.background.ignoresSafeArea() }
-            }.kstepTab(.discover)
             ToolsView().kstepTab(.tools)
+            // The lesson feed owns player and quota state only while visible.
+            Group {
+                if tab == .discover {
+                    DiscoverView(onExit: { tab = .home }, onOpenLesson: {
+                        revealLinkComposer = true
+                        tab = .home
+                    })
+                } else { KStepStyle.background.ignoresSafeArea() }
+            }.kstepTab(.discover)
             LibraryView(edit: { editing = $0 }, filter: $libraryFilter).kstepTab(.library)
             AccountView().kstepTab(.me)
         }
         .tint(KStepStyle.accent)
         .foregroundStyle(.white)
+            .background { KStepStyle.background.ignoresSafeArea(.container, edges: .all) }
             .sheet(item: $editing) { EditorSheet(initialMovie: $0) }
             .overlay(alignment: .top) {
                 if tab != .discover { DownloadCompletionNotice().padding(.top, 8) }
@@ -199,7 +238,6 @@ struct ConnectionPanel: View {
 
     var body: some View {
         VStack(spacing: 24) {
-            StageArtwork(kind: .studio, height: 170)
             if let error {
                 MessagePanel(title: "Let’s reconnect.", message: error)
                 ActionButton(title: "Try again", busy: connecting) { attempt += 1 }

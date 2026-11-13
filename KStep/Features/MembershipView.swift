@@ -5,6 +5,8 @@ struct MembershipView: View {
     var rewardKind: AllowanceKind? = nil
     var exportRequired = false
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var typeSize
+    @ScaledMetric(relativeTo: .footnote) private var benefitColumnWidth: CGFloat = 144
     @EnvironmentObject private var api: APIClient
     @EnvironmentObject private var commerce: CommerceStore
     @EnvironmentObject private var quota: QuotaStore
@@ -18,6 +20,7 @@ struct MembershipView: View {
     @State private var rewardTask: Task<Void, Never>?
     @State private var requestedReward = false
     @State private var acknowledgedLuckyReward = false
+    private let contentWidth: CGFloat = 480
 
     private var plans: [SKProduct] {
         (commerce.policy?.products ?? []).compactMap { entry in
@@ -29,91 +32,48 @@ struct MembershipView: View {
     }
     private var purchasing: Bool { commerce.preparingPurchase || commerce.busy || purchaseTask != nil }
     private var interactionLocked: Bool { purchasing || commerce.loadingPlans || ads.busy || ads.isPresenting }
+    private var purchaseFeedback: String? {
+        guard attemptedPurchaseAction else { return nil }
+        return commerce.error ?? commerce.message
+    }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                VStack(spacing: 12) {
-                    StageArtwork(kind: .pass, height: 136)
-                        .accessibilityHidden(true)
-                    LocalizedText(commerce.premium ? "More time on the floor." : "Keep the practice going.")
-                        .font(.stage(.title2, display: true))
-                        .foregroundStyle(KStepStyle.paper)
-                    LocalizedText("Unlimited views, downloads and media exports.")
-                        .font(.stage(.subheadline)).foregroundStyle(KStepStyle.secondary)
-                }.multilineTextAlignment(.center).frame(maxWidth: .infinity)
-
-                if exportRequired {
-                    LocalizedText("Export is included with Plus.")
-                        .font(.stage(.subheadline, weight: .semibold)).foregroundStyle(KStepStyle.paper)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                if commerce.premium {
-                    VStack(alignment: .leading, spacing: 10) {
-                        LocalizedText("Your membership is active").font(.stage(.headline))
-                        if let expiration = commerce.expiration {
-                            LocalizedText("Access through \(expiration.formatted(Date.FormatStyle(date: .abbreviated, time: .omitted).locale(locale))).")
-                                .font(.stage(.subheadline)).foregroundStyle(KStepStyle.secondary)
-                        }
-                    }.padding(20).frame(maxWidth: .infinity, alignment: .leading)
-                        .background(KStepStyle.surface, in: RoundedRectangle(cornerRadius: 22))
-                } else {
-                    if api.session == nil { ConnectionPanel() }
-                    VStack(spacing: 12) {
-                        ForEach(plans, id: \.productIdentifier) { plan in
-                            planRow(plan)
-                        }
-                    }
-                    if let error = commerce.plansError {
-                        ErrorNote(message: error)
-                        Button("Retry") { Task { await commerce.loadPlans() } }
-                            .buttonStyle(CompactActionStyle()).disabled(interactionLocked)
-                    }
-                    VStack(spacing: 12) {
-                        ActionButton(title: purchaseButtonTitle) { subscribe() }
-                            .disabled(interactionLocked || selectedPlan == nil)
-                            .accessibilityIdentifier("membership.subscribe")
-                        if purchasing {
-                            ProgressView().tint(KStepStyle.accent).accessibilityHidden(true)
-                        }
+        GeometryReader { viewport in
+            let artworkHeight = min(max(viewport.size.height * 0.42, 176), 352)
+            let pinsCheckout = viewport.size.height >= 560 && !typeSize.isAccessibilitySize
+            ScrollViewReader { scroll in
+                StageScrollView { topInset in
+                    VStack(spacing: 24) {
+                        membershipHeader(topInset: topInset, artworkHeight: artworkHeight)
+                        membershipDetails(pinsCheckout: pinsCheckout)
                     }
                 }
-
-                if attemptedPurchaseAction {
-                    if let error = commerce.error { ErrorNote(message: error) }
-                    if let message = commerce.message {
-                        LocalizedText(message).font(.stage(.subheadline)).foregroundStyle(KStepStyle.accent)
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    if pinsCheckout, !commerce.premium, let plan = selectedPlan {
+                        checkout(for: plan)
+                            .frame(maxWidth: contentWidth)
+                            .stageColumn()
+                            .padding(.vertical, 10)
+                            .background(.regularMaterial, ignoresSafeAreaEdges: .bottom)
                     }
                 }
-
-                if !exportRequired, !commerce.premium, api.session != nil { rewardOption }
-
-                VStack(alignment: .leading, spacing: 4) {
-                    LocalizedText("Renews automatically. Cancel in your Apple account at least 24 hours before renewal.")
-                        .font(.stage(.caption)).foregroundStyle(KStepStyle.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                    ViewThatFits(in: .horizontal) {
-                        HStack(spacing: 16) {
-                            restoreLink
-                            PolicyLinks(compact: true)
-                        }
-                        VStack(alignment: .leading, spacing: 0) {
-                            restoreLink
-                            PolicyLinks(compact: true)
-                        }
+                .onChange(of: purchaseFeedback) { _, feedback in
+                    guard feedback != nil else { return }
+                    withAnimation(reduceMotion ? nil : .easeOut(duration: 0.2)) {
+                        scroll.scrollTo("membership.purchaseFeedback")
                     }
                 }
-
-            }.padding(.horizontal, 20).padding(.top, 4).padding(.bottom, 20)
-                .frame(maxWidth: 560).frame(maxWidth: .infinity)
+            }
         }
-        .safeAreaInset(edge: .top, spacing: 0) {
-            SheetHeading(title: "Plus") {
+        .overlay(alignment: .top) {
+            IconButton(symbol: .close, label: "Close") {
                 cancelRewardRequest()
                 dismiss()
             }
-                .disabled(purchasing || ads.isPresenting).padding(.bottom, 8)
-                .kstepScreenBackground()
+            .stageGlass(Circle(), interactive: true)
+            .disabled(purchasing || ads.isPresenting)
+            .frame(maxWidth: .infinity, alignment: .trailing)
+            .stageColumn().padding(.top, 8)
         }
         .kstepScreenBackground().foregroundStyle(.white)
         .task {
@@ -141,6 +101,86 @@ struct MembershipView: View {
         }
     }
 
+    private func membershipHeader(topInset: CGFloat, artworkHeight: CGFloat) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 6) {
+                LocalizedText("Rehearsal pass")
+                    .font(.stage(.largeTitle, weight: .heavy, display: true))
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityAddTraits(.isHeader)
+                if commerce.premium {
+                    LocalizedText("Your membership is active")
+                        .font(.stage(.subheadline, weight: .semibold))
+                        .foregroundStyle(KStepStyle.accent)
+                        .fixedSize(horizontal: false, vertical: true)
+                    if let expiration = commerce.expiration {
+                        let date = expiration.formatted(Date.FormatStyle(date: .abbreviated, time: .omitted).locale(locale))
+                        LocalizedText("Access through %@.", date)
+                            .font(.stage(.footnote))
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                } else if exportRequired {
+                    LocalizedText("Export is included with Plus.")
+                        .font(.stage(.subheadline, weight: .semibold))
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            membershipBenefits
+        }
+        .foregroundStyle(KStepStyle.paper)
+        .frame(maxWidth: contentWidth, alignment: .leading)
+        .stageColumn()
+        .padding(.top, topInset + artworkHeight * 0.60)
+        .background(alignment: .top) {
+            StagePhoto(artwork: "PlusArtwork").frame(height: topInset + artworkHeight)
+        }
+    }
+
+    private func membershipDetails(pinsCheckout: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 20) {
+            if commerce.premium {
+                renewalDisclosure
+            } else {
+                if api.session == nil { ConnectionPanel() }
+                if !plans.isEmpty { planPicker }
+                if plans.isEmpty, commerce.loadingPlans || commerce.loadingProducts || purchasing {
+                    HStack(spacing: 10) {
+                        loadingMark(width: 24)
+                        LocalizedText(purchaseButtonTitle).font(.stage(.subheadline))
+                    }
+                }
+                if let error = commerce.plansError {
+                    ErrorNote(message: error)
+                    Button("Retry") { Task { await commerce.loadPlans() } }
+                        .buttonStyle(CompactActionStyle()).disabled(interactionLocked)
+                }
+                if !pinsCheckout, let plan = selectedPlan {
+                    checkout(for: plan)
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                if purchaseFeedback != nil {
+                    VStack(alignment: .leading, spacing: 4) {
+                        if let error = commerce.error { ErrorNote(message: error) }
+                        if let message = commerce.message {
+                            LocalizedText(message)
+                                .font(.stage(.subheadline)).foregroundStyle(KStepStyle.accent)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    .id("membership.purchaseFeedback")
+                }
+                restoreLink
+                PolicyLinks(compact: true)
+            }
+
+            if !exportRequired, !commerce.premium, api.session != nil { rewardOption }
+        }
+        .frame(maxWidth: contentWidth, alignment: .leading)
+        .kstepPage(top: 0)
+    }
+
     private var purchaseButtonTitle: String {
         if commerce.loadingProducts || commerce.loadingPlans { return "Checking with Apple…" }
         if commerce.preparingPurchase { return "Preparing your subscription…" }
@@ -148,55 +188,183 @@ struct MembershipView: View {
         return "Subscribe"
     }
 
-    private func planRow(_ product: SKProduct) -> some View {
-        let selected = selectedPlan?.productIdentifier == product.productIdentifier
-        let price = commerce.price(product)
-        let period = commerce.period(product, locale: locale)
-        let foreground = selected ? KStepStyle.ink : KStepStyle.paper
-        let secondary = selected ? KStepStyle.paperSecondary : KStepStyle.secondary
-        return Button { selectedID = product.productIdentifier } label: {
-            ViewThatFits(in: .horizontal) {
-                HStack(alignment: .center, spacing: 20) {
-                    planName(product, selected: selected, foreground: foreground, secondary: secondary)
-                    Spacer(minLength: 0)
-                    planPrice(price, period: period, foreground: foreground, secondary: secondary)
-                }
-                VStack(alignment: .leading, spacing: 12) {
-                    planName(product, selected: selected, foreground: foreground, secondary: secondary)
-                    planPrice(price, period: period, foreground: foreground, secondary: secondary)
+    private var membershipBenefits: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            LocalizedText("Included with Plus")
+                .font(.stage(.headline))
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
+            if typeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 12) { benefitRows }
+            } else {
+                ViewThatFits(in: .horizontal) {
+                    LazyVGrid(columns: [
+                        GridItem(.flexible(), spacing: 12, alignment: .topLeading),
+                        GridItem(.flexible(), alignment: .topLeading)
+                    ], alignment: .leading, spacing: 12) { benefitRows }
+                        .frame(minWidth: benefitColumnWidth * 2 + 12)
+                    VStack(alignment: .leading, spacing: 12) { benefitRows }
                 }
             }
-            .padding(16).frame(maxWidth: .infinity, alignment: .leading)
-            .background { StageSurface(tone: selected ? .blush : .plum) }
-            .contentShape(.interaction, RoundedRectangle(cornerRadius: 22))
+        }
+        .foregroundStyle(KStepStyle.paper)
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .stageGlass(RoundedRectangle(cornerRadius: 20))
+    }
+
+    @ViewBuilder private var benefitRows: some View {
+        benefit(.play, "Unlimited lesson views")
+        benefit(.download, "Unlimited offline downloads")
+        benefit(.home, "No ads on launch")
+        benefit(.edit, "Export edited videos as MP4")
+        benefit(.sound, "Export audio as M4A")
+    }
+
+    private func benefit(_ symbol: KStepGlyph, _ title: String) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            Glyph(symbol: symbol, size: 18, tint: KStepStyle.accent)
+            LocalizedText(title)
+                .font(.stage(.footnote, weight: .medium))
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var planPicker: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            LocalizedText("Choose a plan")
+                .font(.stage(.title3, weight: .semibold))
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
+                .padding(.bottom, 4)
+            ForEach(plans, id: \.productIdentifier) { plan in
+                planOption(plan)
+            }
+        }
+    }
+
+    private func planOption(_ product: SKProduct) -> some View {
+        let selected = selectedPlan?.productIdentifier == product.productIdentifier
+        let shape = RoundedRectangle(cornerRadius: 16)
+        return Button { selectedID = product.productIdentifier } label: {
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .top, spacing: 16) {
+                    planName(product).fixedSize(horizontal: true, vertical: false)
+                    Spacer(minLength: 0)
+                    planPrice(product, selected: selected, alignment: .trailing)
+                        .fixedSize(horizontal: true, vertical: false)
+                }
+                VStack(alignment: .leading, spacing: 8) {
+                    planName(product)
+                    planPrice(product, selected: selected, alignment: .leading)
+                }
+            }
+            .multilineTextAlignment(.leading)
+            .padding(.horizontal, 16).padding(.vertical, 12)
+            .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
+            .foregroundStyle(KStepStyle.paper)
+            .background(selected ? KStepStyle.raised : KStepStyle.surface, in: shape)
+            .overlay { shape.strokeBorder(selected ? KStepStyle.accent : KStepStyle.line).allowsHitTesting(false) }
+            .contentShape(shape)
         }.buttonStyle(PressStyle()).disabled(interactionLocked)
             .accessibilityAddTraits(selected ? .isSelected : [])
             .accessibilityIdentifier("membership.plan.\(product.productIdentifier)")
     }
 
-    private func planName(_ product: SKProduct, selected: Bool, foreground: Color, secondary: Color) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(verbatim: product.localizedTitle).font(.stage(.headline)).foregroundStyle(foreground)
-            if selected {
-                LocalizedText("Selected").font(.stage(.caption)).foregroundStyle(secondary)
-            }
+    private func planName(_ product: SKProduct) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(verbatim: product.localizedTitle).font(.stage(.headline))
+            billingPeriod(for: product)
         }.fixedSize(horizontal: false, vertical: true)
     }
 
-    private func planPrice(_ price: String, period: String, foreground: Color, secondary: Color) -> some View {
-        VStack(alignment: .trailing, spacing: 4) {
-            Text(verbatim: price).environment(\.layoutDirection, .leftToRight)
-                .font(.stage(.title2, weight: .bold)).foregroundStyle(foreground).fixedSize()
-            LocalizedText("Billed every %@", period).font(.stage(.caption)).foregroundStyle(secondary)
+    private func planPrice(_ product: SKProduct, selected: Bool, alignment: HorizontalAlignment) -> some View {
+        VStack(alignment: alignment, spacing: 3) {
+            Text(verbatim: commerce.price(product))
+                .environment(\.layoutDirection, .leftToRight)
+                .font(.stage(.title3, weight: .bold)).monospacedDigit()
                 .fixedSize(horizontal: false, vertical: true)
+            LocalizedText("Selected")
+                .font(.stage(.caption2, weight: .semibold))
+                .foregroundStyle(KStepStyle.accent)
+                .opacity(selected ? 1 : 0)
+                .accessibilityHidden(true)
         }
     }
 
-    private func subscribe() {
-        guard !interactionLocked, let plan = selectedPlan else { return }
+    private func billingPeriod(for product: SKProduct) -> some View {
+        let label: LocalizedText
+        if let period = product.subscriptionPeriod, period.numberOfUnits == 1, period.unit == .month {
+            label = LocalizedText("Billed monthly")
+        } else if let period = product.subscriptionPeriod, period.numberOfUnits == 1, period.unit == .year {
+            label = LocalizedText("Billed yearly")
+        } else {
+            label = LocalizedText("Billed every %@", commerce.period(product, locale: locale))
+        }
+        return label
+            .font(.stage(.caption))
+            .foregroundStyle(KStepStyle.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private func checkout(for product: SKProduct) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 12) {
+                    checkoutPrice(for: product).fixedSize(horizontal: true, vertical: false)
+                    Spacer(minLength: 0)
+                    purchaseAction(planID: product.productIdentifier).fixedSize(horizontal: true, vertical: false)
+                }
+                VStack(alignment: .leading, spacing: 10) {
+                    checkoutPrice(for: product)
+                    purchaseAction(planID: product.productIdentifier)
+                }
+            }
+            renewalDisclosure
+        }.foregroundStyle(KStepStyle.paper)
+    }
+
+    private func checkoutPrice(for product: SKProduct) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(verbatim: commerce.price(product))
+                .environment(\.layoutDirection, .leftToRight)
+                .font(.stage(.headline, weight: .bold)).monospacedDigit()
+                .fixedSize(horizontal: false, vertical: true)
+            billingPeriod(for: product)
+        }.accessibilityElement(children: .combine)
+    }
+
+    private var renewalDisclosure: some View {
+        LocalizedText("Renews automatically. Cancel in your Apple account at least 24 hours before renewal.")
+            .font(.stage(.caption)).foregroundStyle(KStepStyle.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private func purchaseAction(planID: String) -> some View {
+        Button { subscribe(planID: planID) } label: {
+            HStack(spacing: 8) {
+                if purchasing {
+                    loadingMark(width: 22, tint: KStepStyle.ink)
+                }
+                LocalizedText(purchaseButtonTitle).font(.stage(.headline, weight: .bold))
+                    .fixedSize(horizontal: false, vertical: true)
+                    .multilineTextAlignment(.center)
+            }
+            .padding(.horizontal, 20).padding(.vertical, 10)
+            .frame(minWidth: 132, maxWidth: .infinity, minHeight: 50)
+            .foregroundStyle(KStepStyle.ink)
+            .background(KStepStyle.accent, in: Capsule())
+            .contentShape(Capsule())
+        }.buttonStyle(PressStyle())
+            .disabled(interactionLocked || selectedPlan == nil)
+            .accessibilityIdentifier("membership.subscribe")
+    }
+
+    private func subscribe(planID: String) {
+        guard !interactionLocked, selectedPlan?.productIdentifier == planID else { return }
         attemptedPurchaseAction = true
         purchaseTask = Task {
-            await commerce.purchase(planID: plan.productIdentifier)
+            await commerce.purchase(planID: planID)
             purchaseTask = nil
         }
     }
@@ -217,7 +385,7 @@ struct MembershipView: View {
             }
             if ads.busy {
                 HStack(spacing: 12) {
-                    ProgressView().tint(KStepStyle.accent).accessibilityHidden(true)
+                    loadingMark(width: 28)
                     LocalizedText("Loading ad…").font(.stage(.footnote))
                     Spacer(minLength: 12)
                     Button("Cancel") { cancelRewardRequest() }
@@ -244,137 +412,223 @@ struct MembershipView: View {
         ads.cancelRewardLoading()
     }
 
+    private func loadingMark(width: CGFloat, tint: Color = KStepStyle.accent) -> some View {
+        Image("KStepLoadingMark").renderingMode(.template).resizable().scaledToFit()
+            .foregroundStyle(tint)
+            .frame(width: width, height: 14)
+            .phaseAnimator([false, true]) { content, dimmed in
+                content.opacity(reduceMotion || scenePhase != .active ? 1 : (dimmed ? 0.35 : 1))
+            } animation: { _ in
+                reduceMotion || scenePhase != .active ? nil : .easeInOut(duration: 0.6)
+            }
+            .accessibilityHidden(true)
+    }
+
     private var restoreLink: some View {
         Button {
             attemptedPurchaseAction = true
             commerce.restore()
         } label: {
             LocalizedText("Restore purchases")
-                .font(.stage(.footnote, weight: .medium))
-                .foregroundStyle(KStepStyle.accent)
-                .lineLimit(1).fixedSize(horizontal: true, vertical: false)
-                .frame(minHeight: 44)
-                .contentShape(Rectangle())
+                .font(.stage(.footnote, weight: .semibold))
+                .fixedSize(horizontal: false, vertical: true)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 16).padding(.vertical, 8)
+                .frame(minWidth: 44, minHeight: 44)
+                .foregroundStyle(KStepStyle.paper)
+                .overlay { Capsule().strokeBorder(KStepStyle.secondary.opacity(0.55)).allowsHitTesting(false) }
+                .contentShape(Capsule())
         }.disabled(interactionLocked).buttonStyle(PressStyle())
+            .accessibilityIdentifier("membership.restore")
     }
-
 }
 
 struct AccountView: View {
+    @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var typeSize
     @EnvironmentObject private var api: APIClient
     @EnvironmentObject private var commerce: CommerceStore
     @EnvironmentObject private var quota: QuotaStore
     @EnvironmentObject private var ads: RewardedAds
     @EnvironmentObject private var accountAccess: AccountAccessFlow
     @State private var paywall = false
+    private let contentWidth: CGFloat = 520
+
     private var unavailable: Bool {
         accountAccess.isBusy || commerce.busy || commerce.preparingPurchase || ads.busy || ads.isPresenting
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 22) {
-                if let session = api.session {
-                    ViewThatFits(in: .horizontal) {
-                        HStack(alignment: .firstTextBaseline) {
-                            accountIdentity(session.userId.value)
-                            Spacer(minLength: 16)
-                            accountStatus
-                        }
-                        VStack(alignment: .leading, spacing: 8) {
-                            accountIdentity(session.userId.value)
-                            accountStatus
-                        }
+        GeometryReader { viewport in
+            let artworkHeight = min(max(viewport.size.height * 0.42, 176), 320)
+            StageScrollView { topInset in
+                VStack(spacing: 18) {
+                    profileHeader(topInset: topInset, artworkHeight: artworkHeight)
+                    VStack(alignment: .leading, spacing: 24) {
+                        if api.session != nil { membershipButton }
+                        AccountSettingsSection()
+                        LocalizedText("Version %@", api.configuration.version)
+                            .font(.stage(.caption))
+                            .foregroundStyle(KStepStyle.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    membershipCard
-                    allowance
-                } else { ConnectionPanel() }
-                AccountSettingsSection()
-                LocalizedText("Version \(api.configuration.version)")
-                    .font(.stage(.caption)).foregroundStyle(KStepStyle.secondary)
-                    .frame(maxWidth: .infinity).padding(.top, 4)
+                    .frame(maxWidth: contentWidth, alignment: .leading)
+                    .kstepPage(top: 0)
+                }
             }
-            .padding(.horizontal, 20).padding(.top, 20).padding(.bottom, 24)
-            .frame(maxWidth: 600).frame(maxWidth: .infinity)
-        }.kstepScreenBackground().foregroundStyle(.white)
+        }.kstepScreenBackground().foregroundStyle(KStepStyle.paper)
             .sheet(isPresented: $paywall) { MembershipView() }
     }
 
-    private func accountIdentity(_ id: String) -> some View {
-        VStack(alignment: .leading, spacing: 5) {
-            LocalizedText("Your practice space").font(.stage(.headline)).foregroundStyle(KStepStyle.paper)
-            LocalizedText("ID · \(id)").font(.caption.monospaced()).foregroundStyle(KStepStyle.secondary)
-                .textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+    private func profileHeader(topInset: CGFloat, artworkHeight: CGFloat) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 4) {
+                LocalizedText("My studio")
+                    .font(.stage(.largeTitle, display: true))
+                    .accessibilityAddTraits(.isHeader)
+                if let session = api.session {
+                    LocalizedText("ID · %@", session.userId.value)
+                        .font(.caption.monospaced())
+                        .foregroundStyle(KStepStyle.paper.opacity(0.84))
+                        .textSelection(.enabled)
+                }
+            }.fixedSize(horizontal: false, vertical: true)
+            if api.session != nil { allowance }
+            else { ConnectionPanel() }
+        }
+        .frame(maxWidth: contentWidth, alignment: .leading)
+        .stageColumn()
+        .padding(.top, topInset + artworkHeight * 0.50)
+        .background(alignment: .top) {
+            StagePhoto(artwork: "ProfileStudio", imageAlignment: .top)
+                .frame(height: topInset + artworkHeight)
         }
     }
 
-    private var accountStatus: some View {
-        LocalizedText(commerce.premium ? "Plus active" : "Free plan")
-            .font(.stage(.caption, weight: .semibold))
-            .foregroundStyle(commerce.premium ? KStepStyle.accent : KStepStyle.secondary)
-    }
-
-    private var membershipCard: some View {
-        Button { paywall = true } label: {
-            ViewThatFits(in: .horizontal) {
-                HStack(spacing: 8) {
-                    membershipCopy
-                    StageArtwork(kind: .pass, height: 126).frame(width: 132)
-                }
-                VStack(alignment: .leading, spacing: 12) {
-                    StageArtwork(kind: .pass, height: 100)
-                    membershipCopy
-                }
+    private var membershipButton: some View {
+        let shape = RoundedRectangle(cornerRadius: 16)
+        return Button { paywall = true } label: {
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 4) {
+                    LocalizedText(commerce.premium ? "Plus active" : "Free plan")
+                        .font(.stage(.caption, weight: .semibold))
+                        .foregroundStyle(KStepStyle.paperSecondary)
+                    LocalizedText(commerce.premium ? "Manage membership" : "Explore Plus")
+                        .font(.stage(.headline))
+                }.fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 0)
+                Glyph(symbol: .back, size: 14, tint: KStepStyle.ink).rotationEffect(.degrees(180))
             }
-            .padding(22).frame(maxWidth: .infinity, alignment: .leading)
-            .background(KStepStyle.paper, in: RoundedRectangle(cornerRadius: 24))
-            .contentShape(.interaction, RoundedRectangle(cornerRadius: 24))
+            .padding(.horizontal, 16).padding(.vertical, 12)
+            .frame(maxWidth: .infinity, minHeight: 60, alignment: .leading)
+            .foregroundStyle(KStepStyle.ink)
+            .background(KStepStyle.paper, in: shape)
+            .contentShape(shape)
         }.buttonStyle(PressStyle()).disabled(unavailable)
             .accessibilityIdentifier("account.membership")
     }
 
-    private var membershipCopy: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            LocalizedText(commerce.premium ? "Your all-access pass." : "Go further with Plus.")
-                .font(.stage(.title3, weight: .semibold)).foregroundStyle(KStepStyle.ink)
-            LocalizedText("Unlimited views. Unlimited downloads.")
-                .font(.stage(.footnote)).foregroundStyle(KStepStyle.paperSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-            LocalizedText(commerce.premium ? "Manage membership" : "Explore plans")
-                .font(.stage(.footnote, weight: .semibold)).foregroundStyle(KStepStyle.ink)
-                .padding(.top, 8)
-        }.fixedSize(horizontal: false, vertical: true)
-    }
-
     private var allowance: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            HStack(alignment: .firstTextBaseline) {
-                LocalizedText("Today").font(.stage(.headline))
-                Spacer()
+        VStack(alignment: .leading, spacing: 12) {
+            allowanceHeading
+
+            if !commerce.premium, let error = quota.error {
+                LocalizedText(error).font(.stage(.footnote))
+                    .foregroundStyle(KStepStyle.danger)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else if commerce.premium || quota.usage != nil {
+                if typeSize.isAccessibilitySize {
+                    stackedBalances
+                } else {
+                    ViewThatFits(in: .horizontal) {
+                        HStack(alignment: .top, spacing: 16) {
+                            balance(for: .watch)
+                                .fixedSize(horizontal: true, vertical: false)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            balance(for: .download)
+                                .fixedSize(horizontal: true, vertical: false)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        stackedBalances
+                    }
+                }
                 if !commerce.premium {
-                    Button("Get more") { paywall = true }
-                        .font(.stage(.footnote, weight: .semibold)).foregroundStyle(KStepStyle.accent)
-                        .frame(minHeight: 44).buttonStyle(PressStyle()).disabled(unavailable)
-                        .accessibilityLabel("Get more daily views and downloads")
+                    Divider().overlay(KStepStyle.line)
+                    AllowanceResetText()
+                }
+            } else {
+                HStack(spacing: 8) {
+                    ProgressView().tint(KStepStyle.accent).accessibilityHidden(true)
+                    LocalizedText("Checking today’s allowance…")
+                        .font(.stage(.footnote))
+                        .foregroundStyle(KStepStyle.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
-            HStack(alignment: .top, spacing: 20) {
-                balance(value: commerce.premium || quota.unlimited ? "Unlimited" : "\(quota.watchesLeft)", label: "Views left")
-                balance(value: commerce.premium || quota.downloadsUnlimited ? "Unlimited" : "\(quota.downloadsLeft)", label: "Downloads left")
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .stageGlass(RoundedRectangle(cornerRadius: 20))
+    }
+
+    @ViewBuilder private var allowanceHeading: some View {
+        let title = LocalizedText("Remaining today").font(.stage(.headline))
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityAddTraits(.isHeader)
+        if AllowanceKind.allCases.contains(where: { quota.canRequestReward(for: $0, premium: commerce.premium) }) {
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 12) {
+                    title.fixedSize(horizontal: true, vertical: false)
+                    Spacer(minLength: 0)
+                    rewardEntry.fixedSize(horizontal: true, vertical: false)
+                }
+                VStack(alignment: .leading, spacing: 4) {
+                    title
+                    rewardEntry
+                }
             }
-            if commerce.premium {
-                LocalizedText("Included with your membership").font(.stage(.caption)).foregroundStyle(KStepStyle.secondary)
-            } else { AllowanceResetText() }
+        } else {
+            title
         }
     }
 
-    private func balance(value: String, label: String) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            LocalizedText(value).font(value == "Unlimited" ? .headline : .title.weight(.semibold))
-                .monospacedDigit().foregroundStyle(KStepStyle.paper)
+    private var rewardEntry: some View {
+        Button { paywall = true } label: {
+            LocalizedText("Get more").font(.stage(.footnote, weight: .semibold))
+                .foregroundStyle(KStepStyle.accent)
                 .fixedSize(horizontal: false, vertical: true)
-            LocalizedText(label).font(.stage(.footnote)).foregroundStyle(KStepStyle.secondary)
-        }.frame(maxWidth: .infinity, alignment: .leading)
+                .frame(minWidth: 44, minHeight: 44)
+                .contentShape(Rectangle())
+        }.buttonStyle(PressStyle()).disabled(unavailable)
+            .accessibilityLabel(LocalizedStringKey("Get more daily views and downloads"))
+    }
+
+    private var stackedBalances: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            balance(for: .watch)
+            balance(for: .download)
+        }
+    }
+
+    private func balance(for kind: AllowanceKind) -> some View {
+        let unlimited = commerce.premium || quota.isUnlimited(kind)
+        let title = kind == .watch ? "Lesson views" : "Downloads"
+        return VStack(alignment: .leading, spacing: 5) {
+            HStack(spacing: 7) {
+                Glyph(symbol: kind == .watch ? .play : .download, size: 14, tint: KStepStyle.accent)
+                LocalizedText(title)
+                    .font(.stage(.footnote, weight: .medium))
+                    .foregroundStyle(KStepStyle.paper)
+            }
+            if unlimited {
+                LocalizedText("Unlimited").font(.stage(.title3, weight: .semibold))
+            } else {
+                Text(quota.remaining(kind), format: .number.locale(locale))
+                    .font(.stage(.largeTitle, weight: .semibold)).monospacedDigit()
+            }
+        }
+        .fixedSize(horizontal: false, vertical: true)
+        .accessibilityElement(children: .combine)
     }
 }
 

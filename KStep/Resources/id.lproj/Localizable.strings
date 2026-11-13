@@ -20,7 +20,7 @@
 "A little knowledge for your next session." = "Pengetahuan singkat untuk latihan berikutnya.";
 "A little luck, on us" = "Sedikit bonus untukmu";
 "A right-handed player's backhand is usually struck on the left side of the body, slightly in front. A left-handed player reverses the sides. Give yourself room instead of letting the ball arrive too close." = "Backhand pemain tangan kanan biasanya dipukul di sisi kiri tubuh, sedikit di depan. Pemain kidal membalik sisinya. Beri ruang agar bola tidak terlalu dekat dengan tubuh.";
-"A secure connection to KStep could not be established. Check your network or VPN, then try again. If it continues, the service may be temporarily unavailable." = "Koneksi aman ke KStep gagal. Periksa jaringan atau VPN, lalu coba lagi. Jika berlanjut, layanan mungkin sementara tidak tersedia.";
+"Couldn’t connect securely. Check your network or VPN, then try again. If it continues, the service may be temporarily unavailable." = "Koneksi aman gagal dibuat. Periksa jaringan atau VPN, lalu coba lagi. Jika masalah berlanjut, layanan mungkin tidak tersedia untuk sementara.";
 "A serve starts with the toss." = "Servis dimulai dari lambungan.";
 "A short guide to following the score." = "Panduan singkat memahami skor.";
 "Access password" = "Kata sandi akses";
@@ -70,8 +70,7 @@
 "Choose your language" = "Pilih bahasamu";
 "Choose your practice footage in Tools to keep a local working copy." = "Pilih rekaman latihan di Alat untuk menyimpan salinan kerja lokal.";
 "Clear" = "Hapus";
-"KStep is starting" = "KStep sedang dimulai";
-"KStep’s online service is not configured yet. Local editing is available." = "Layanan online KStep belum dikonfigurasi. Pengeditan lokal tersedia.";
+"The online service is not configured yet. Local editing is available." = "Layanan online belum dikonfigurasi. Pengeditan lokal tetap tersedia.";
 "Close" = "Tutup";
 "Confirming your purchase…" = "Mengonfirmasi pembelian…";
 "Connecting your lesson feed…" = "Menghubungkan feed pelajaran…";
@@ -141,6 +140,7 @@
 "If a payment is waiting to be confirmed, retry without purchasing again." = "Jika pembayaran menunggu konfirmasi, coba konfirmasi lagi tanpa membeli ulang.";
 "If the server has won two points and the receiver one, the score is 30–15." = "Jika server menang dua poin dan penerima satu, skornya 30–15.";
 "Imported video" = "Video yang diimpor";
+"Video" = "Video";
 "Importing…" = "Mengimpor…";
 "Imports" = "Impor";
 "In standard advantage scoring, zero is called love. The next points are 15, 30 and 40. A player wins a game with at least four points and a lead of two. The server's score is announced first." = "Dalam skor advantage standar, nol disebut love, lalu 15, 30, dan 40. Pemain memenangkan gim dengan minimal empat poin dan unggul dua. Skor server disebut lebih dahulu.";
@@ -284,7 +284,7 @@
 "Test ads require Google's sample iOS App ID." = "Iklan uji memerlukan ID aplikasi iOS contoh dari Google.";
 "The Championships are held at the All England Club. Wimbledon is the only one of the four majors still played on grass." = "Wimbledon diadakan di All England Club. Inilah satu-satunya dari empat major yang masih dimainkan di lapangan rumput.";
 "The ad finished, but its reward could not be saved. %@" = "Iklan selesai, tetapi hadiahnya gagal disimpan. %@";
-"The copy in KStep will be removed. The original in Photos or Files will stay untouched." = "Salinan di KStep akan dihapus. File asli di Foto atau File tetap utuh.";
+"This removes the library copy. Your original stays in Photos or Files." = "Salinan di pustaka akan dihapus. File asli tetap ada di Foto atau File.";
 "The direction of the racket face at contact strongly affects where the ball goes. Begin with a comfortable swing and aim to keep the ball in play. Add pace and spin as your contact becomes more reliable." = "Arah muka raket saat kontak sangat memengaruhi arah bola. Mulai dengan ayunan nyaman dan jaga bola tetap dalam permainan. Tambahkan kecepatan dan putaran saat kontak lebih konsisten.";
 "The document was interrupted. Please try again." = "Dokumen terputus. Coba lagi.";
 "The export finished but could not be added to your library. %@" = "Ekspor selesai tetapi tidak dapat ditambahkan ke koleksi. %@";
@@ -473,7 +473,6 @@
 "Download could not be saved. Please try again. (%@)" = "Unduhan tidak dapat disimpan. Coba lagi. (%@)";
 "Loading ad…" = "Memuat iklan…";
 "Exporting…" = "Mengekspor…";
-"This stream can be watched offline in KStep but cannot be exported." = "Video ini dapat ditonton offline di KStep, tetapi tidak dapat diekspor.";
 
 "Finish downloading this video to export it." = "Selesaikan unduhan video ini untuk mengekspornya.";
 
@@ -522,12 +521,8 @@
 "Finish this ad for unlimited downloads today." = "Selesaikan iklan ini untuk unduhan tanpa batas hari ini.";
 "Connect to refresh your allowance." = "Hubungkan ke internet untuk memperbarui kuota.";
 
-"KStep link or lesson code" = "Tautan KStep atau kode pelajaran";
 "Paste" = "Tempel";
 "Open lesson" = "Buka pelajaran";
-"Use a lesson link or code shared through KStep." = "Gunakan tautan atau kode pelajaran yang dibagikan melalui KStep.";
-"Copy a KStep link or lesson code first, then tap Paste." = "Salin tautan KStep atau kode pelajaran terlebih dahulu, lalu ketuk Tempel.";
-"1. Copy a KStep link" = "1. Salin tautan KStep";
 "Tap Paste or enter the lesson code exactly as received. Codes are case-sensitive." = "Ketuk Tempel atau masukkan kode pelajaran persis seperti yang diterima. Kode membedakan huruf besar dan kecil.";
 "Tap Open lesson to find matching lessons, then swipe to watch." = "Ketuk Buka pelajaran untuk menemukan pelajaran yang cocok, lalu geser untuk menonton.";
 
@@ -535,14 +530,20 @@
 "The browser could not open. Please try again." = "Browser tidak dapat dibuka. Silakan coba lagi.";
 "Connect to verify your Plus membership before exporting." = "Hubungkan ke internet untuk memverifikasi keanggotaan Plus sebelum mengekspor.";
 "Export is included with Plus." = "Ekspor termasuk dalam keanggotaan Plus.";
-"Unlimited views, downloads and media exports." = "Tontonan, unduhan, dan ekspor media tanpa batas.";
-"No matching lessons. Search the web with your original input." = "Tidak ada pelajaran yang cocok. Cari di web menggunakan masukan Anda.";
+"Included with Plus" = "Termasuk dalam Plus";
+"Unlimited lesson views" = "Tonton pelajaran tanpa batas";
+"Unlimited offline downloads" = "Unduhan tanpa batas untuk ditonton offline";
+"No ads on launch" = "Tanpa iklan saat membuka aplikasi";
+"Export edited videos as MP4" = "Ekspor video yang diedit sebagai MP4";
 
 "Official website" = "Situs resmi";
 
 "Subscribe" = "Berlangganan";
 
 "Billed every %@" = "Ditagih setiap %@";
+"Choose a plan" = "Pilih paket";
+"Billed monthly" = "Ditagih bulanan";
+"Billed yearly" = "Ditagih tahunan";
 
 "Apple updated this plan. Review the price and billing period, then continue." = "Apple memperbarui paket ini. Periksa harga dan periode penagihan, lalu lanjutkan.";
 
@@ -555,3 +556,53 @@
 "The distribution package does not exist" = "Konfigurasi distribusi aplikasi tidak ditemukan.";
 "Web search" = "Penelusuran web";
 "Opening page…" = "Membuka halaman…";
+
+"Rehearsal library" = "Koleksi latihan";
+"Rehearsal pass" = "Akses latihan";
+
+/* Home and practice shortcuts */
+"Learn the chorus one eight-count at a time." = "Pelajari koreografi bagian reff per delapan hitungan.";
+"Practice room" = "Ruang latihan";
+"Couldn’t load lesson collections" = "Kumpulan pelajaran tidak dapat dimuat";
+"Find a lesson" = "Cari pelajaran";
+"Unlimited lesson views today" = "Tonton pelajaran tanpa batas hari ini";
+"Couldn’t check remaining views" = "Sisa kuota tonton tidak dapat diperiksa";
+"Checking remaining views…" = "Memeriksa sisa kuota tonton…";
+"%@ lesson view left today" = "Sisa kuota tonton pelajaran hari ini: %@";
+"%@ lesson views left today" = "Sisa kuota tonton pelajaran hari ini: %@";
+"Link & code help" = "Bantuan tautan dan kode";
+"Copy a lesson link or code, then tap Paste." = "Salin tautan atau kode pelajaran, lalu ketuk Tempel.";
+"Couldn’t open the lesson" = "Pelajaran tidak dapat dibuka";
+"Browse lessons" = "Jelajahi pelajaran";
+"Review video" = "Tinjau video";
+"Lesson links and codes" = "Tautan dan kode pelajaran";
+"Paste a link or enter a code" = "Tempel tautan atau masukkan kode";
+"Enter the code exactly as shared, including capital letters." = "Masukkan kode persis seperti yang dibagikan, termasuk huruf kapital.";
+"Rehearsal log" = "Jurnal latihan";
+"Track each run by section and eight-count." = "Catat setiap percobaan menurut bagian lagu dan blok delapan hitungan.";
+"Dance notes" = "Catatan tari";
+"5, 6, 7, 8!" = "5, 6, 7, 8!";
+
+"Rehearsal" = "Latihan";
+"Eight-count" = "Delapan hitungan";
+"Practice speed" = "Kecepatan latihan";
+"Open a dance lesson" = "Buka pelajaran tari";
+"Choreo collections" = "Koleksi koreografi";
+
+/* Stage screens */
+"Continue to app" = "Masuk ke aplikasi";
+"No lessons yet" = "Belum ada pelajaran";
+"Couldn’t load lessons" = "Pelajaran tidak dapat dimuat";
+"No matching lessons" = "Tidak ada pelajaran yang cocok";
+"Search the web with what you entered." = "Telusuri web dengan teks yang Anda masukkan.";
+"Paste a shared lesson link or short code to start practicing." = "Tempel tautan pelajaran yang dibagikan atau kode singkat untuk mulai berlatih.";
+"My studio" = "Studio saya";
+"Explore Plus" = "Lihat Plus";
+"Lesson views" = "Tontonan pelajaran";
+"Checking today’s allowance…" = "Memeriksa kuota hari ini…";
+"Settings" = "Pengaturan";
+"Remaining today" = "Sisa hari ini";
+"Film and review" = "Rekam dan tinjau";
+"Review my dance video" = "Tinjau video tarian saya";
+"Slow down a tricky eight-count." = "Perlambat bagian delapan hitungan yang sulit.";
+"Crop, rotate or mirror your dance video." = "Pangkas, putar, atau cerminkan video tarianmu.";
